@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro';
+import ProductTile from '../../components/ProductTile.astro';
+import ClosingCta from '../../components/ClosingCta.astro';
+import Arrow from '../../components/Arrow.astro';
+import { categories, products } from '../../data/index.js';
+---
+
+<Base
+  title="Our Products"
+  description="Browse the ANCHATRA FARMS catalogue: black garlic and moringa powder, plus fresh produce beginning with onions and tomatoes. Request a quotation for any product."
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Our products</p>
+      <h1>A small catalogue, chosen with care.</h1>
+      <p class="lede">
+        Processed agricultural products are our main focus, supported by fresh produce sourced through our market
+        relationships in Oddanchatram. Specifications, packaging and availability are confirmed for each enquiry.
+      </p>
+    </div>
+  </section>
+
+  <section class="section--tight" style="padding-top:0" aria-label="Product catalogue">
+    <div class="container">
+      <div class="filters" data-reveal role="group" aria-label="Filter products by category">
+        <button type="button" class="filter" data-filter="all" aria-pressed="true">All products</button>
+        {
+          categories.map((category) => (
+            <button type="button" class="filter" data-filter={category.slug} aria-pressed="false">
+              {category.name}
+            </button>
+          ))
+        }
+      </div>
+
+      <p class="visually-hidden" id="filter-status" role="status" aria-live="polite"></p>
+
+      <div class="product-grid" id="product-grid">
+        {products.map((product) => <ProductTile product={product} />)}
+      </div>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <h2>Nothing listed in this category yet.</h2>
+        <p>
+          We are still developing this part of our range. If you are looking for a particular product, tell us what you
+          need and we will let you know whether we can help.
+        </p>
+        <div class="btn-row">
+          <button type="button" class="btn btn--ghost" data-filter="all">Show all products</button>
+          <a class="btn btn--primary" href="/contact/?product=other#quote-form">Tell us what you need <Arrow /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta
+    heading="Looking for something not listed?"
+    text="Our range is growing. Send us your requirement and we will tell you honestly whether it is something we can source."
+    href="/contact/?product=other#quote-form"
+  />
+</Base>
+
+<script>
+  const buttons = document.querySelectorAll('[data-filter]');
+  const tiles = document.querySelectorAll('#product-grid .product-tile');
+  const grid = document.getElementById('product-grid');
+  const empty = document.getElementById('empty-state');
+  const status = document.getElementById('filter-status');
+  const known = new Set(Array.from(buttons, (button) => button.dataset.filter));
+
+  function applyFilter(filter, updateUrl) {
+    if (!known.has(filter)) filter = 'all';
+    let visible = 0;
+
+    tiles.forEach((tile) => {
+      const show = filter === 'all' || tile.dataset.category === filter;
+      tile.hidden = !show;
+      if (show) visible += 1;
+    });
+
+    buttons.forEach((button) => {
+      if (button.classList.contains('filter')) {
+        button.setAttribute('aria-pressed', String(button.dataset.filter === filter));
+      }
+    });
+
+    grid.hidden = visible === 0;
+    empty.hidden = visible !== 0;
+    status.textContent = visible === 1 ? '1 product shown' : `${visible} products shown`;
+
+    if (updateUrl) {
+      const url = new URL(window.location.href);
+      if (filter === 'all') url.searchParams.delete('category');
+      else url.searchParams.set('category', filter);
+      history.replaceState(null, '', url);
+    }
+  }
+
+  buttons.forEach((button) => button.addEventListener('click', () => applyFilter(button.dataset.filter, true)));
+
+  // Support links such as /products/?category=fresh-produce
+  applyFilter(new URLSearchParams(window.location.search).get('category') || 'all', false);
+</script>
+
+<style>
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding-block: 1.25rem;
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+    border-block: 1px solid var(--line);
+  }
+  .filter {
+    min-height: 2.75rem;
+    padding: 0.55rem 1.15rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--charcoal);
+    font: 500 0.9rem/1.2 var(--sans);
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      color 0.2s,
+      border-color 0.2s;
+  }
+  .filter:hover {
+    border-color: var(--green);
+  }
+  .filter[aria-pressed='true'] {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--ivory);
+  }
+  .empty-state {
+    max-width: 38rem;
+    padding: clamp(2rem, 5vw, 3.5rem);
+    background: var(--ivory-deep);
+    border-radius: var(--radius);
+  }
+  .empty-state h2 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+  }
+  .empty-state p {
+    margin-top: 1rem;
+    color: var(--muted);
+  }
+</style>

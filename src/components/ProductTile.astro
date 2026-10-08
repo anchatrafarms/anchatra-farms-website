@@ -1,0 +1,25 @@
+---
+import Photo from './Photo.astro';
+import Arrow from './Arrow.astro';
+import { getCategory, productHref, enquiryHref } from '../data/index.js';
+
+const { product, headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
+const image = product.images[0];
+const category = getCategory(product.category);
+---
+
+<article class="product-tile" data-category={product.category} data-reveal>
+  <a class="product-tile__image" href={productHref(product)} tabindex="-1" aria-hidden="true">
+    <Photo file={image.file} alt="" cutout={image.cutout} />
+    <span class="product-tile__badge">{category?.shortName}</span>
+  </a>
+  <div class="product-tile__body">
+    <Heading><a href={productHref(product)}>{product.name}</a></Heading>
+    <p>{product.summary}</p>
+    <div class="product-tile__links">
+      <a class="arrow-link" href={productHref(product)}>View details<span class="visually-hidden">: {product.name}</span> <Arrow /></a>
+      <a class="arrow-link" href={enquiryHref(product)}>Enquire<span class="visually-hidden"> about {product.name}</span></a>
+    </div>
+  </div>
+</article>

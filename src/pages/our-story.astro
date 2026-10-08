@@ -1,0 +1,229 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Arrow from '../components/Arrow.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import { site } from '../data/index.js';
+---
+
+<Base
+  title="Our Story"
+  description="ANCHATRA FARMS takes its name from Oddanchatram, the Tamil Nadu market town we call home. Read how local market relationships shaped an agricultural export business."
+  image="market-stall.jpg"
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Our story</p>
+      <h1>We carry our hometown <em>in our name.</em></h1>
+      <p class="lede">
+        ANCHATRA FARMS begins with a connection to place. Our name is drawn from Oddanchatram, the Tamil Nadu market town
+        we call home.
+      </p>
+    </div>
+  </section>
+
+  <!-- The name -->
+  <section class="section on-dark" aria-labelledby="name-heading">
+    <div class="container name-block" data-reveal>
+      <div>
+        <p class="eyebrow">Where the name comes from</p>
+        <p class="namemark" aria-label="Oddanchatram, with the letters ANCHATRA highlighted">
+          <span aria-hidden="true">Odd</span><strong aria-hidden="true">anchatra</strong><span aria-hidden="true">m</span>
+        </p>
+        <p class="namemark-note">Oddanchatram, Dindigul district, Tamil Nadu</p>
+      </div>
+      <div>
+        <h2 id="name-heading">Eight letters from the middle of home.</h2>
+        <p class="lede" style="margin-top:1.5rem">
+          Look inside the word Oddanchatram and you will find ANCHATRA. We chose it deliberately: wherever our products
+          travel, the name keeps the town at the centre of the business.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Founder + market relationships -->
+  <section class="section" aria-labelledby="roots-heading">
+    <div class="container split">
+      <div class="split__media story-photo" data-reveal="wipe">
+        <Photo file={site.locationImage.file} alt={site.locationImage.alt} ratio="4 / 5" />
+        {site.locationImage.caption && <p class="photo-caption">{site.locationImage.caption}</p>}
+      </div>
+      <div class="split__body" data-reveal="right">
+        <p class="eyebrow">Local roots</p>
+        <h2 id="roots-heading">It started with people we know.</h2>
+        <div class="prose" style="margin-top:1.75rem">
+          <p>
+            Oddanchatram is an agricultural market hub in Tamil Nadu. Its vegetable market is part of daily life in the
+            town — a place where produce changes hands and where traders and shop owners know one another by name.
+          </p>
+          <p>
+            Our founder is from Oddanchatram and has personal relationships with shop owners in that market. Through
+            those relationships, our founder saw an opportunity to build a business connecting agricultural products with
+            buyers beyond our region.
+          </p>
+          <p>
+            That is the foundation of ANCHATRA FARMS: a sourcing business built on familiarity and trust at home, with
+            the aim of earning the same from buyers abroad.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What we offer -->
+  <section class="section section--deep" aria-labelledby="offer-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div>
+          <p class="eyebrow">What we offer</p>
+          <h2 id="offer-heading">Fresh produce and processed products, side by side.</h2>
+        </div>
+        <p class="lede">
+          Our focus brings together processed agricultural products such as black garlic and moringa powder with fresh
+          produce, including onions and tomatoes.
+        </p>
+      </div>
+
+      <div class="offer">
+        <a class="offer__item" data-reveal="zoom" href="/products/black-garlic/">
+          <Photo file="black-garlic-cloves.jpg" alt="Black garlic bulbs and peeled black cloves" cutout ratio="1" sizes="(min-width: 54rem) 25vw, 50vw" />
+          <span>Black Garlic <Arrow /></span>
+        </a>
+        <a class="offer__item" data-reveal="zoom" href="/products/moringa-powder/">
+          <Photo file="moringa-powder-tray.jpg" alt="Green moringa powder in a wooden tray" ratio="1" sizes="(min-width: 54rem) 25vw, 50vw" />
+          <span>Moringa Powder <Arrow /></span>
+        </a>
+        <a class="offer__item" data-reveal="zoom" href="/products/onions/">
+          <Photo file="onions-market.jpg" alt="Onions in a basket at a market stall" ratio="1" sizes="(min-width: 54rem) 25vw, 50vw" />
+          <span>Onions <Arrow /></span>
+        </a>
+        <a class="offer__item" data-reveal="zoom" href="/products/tomatoes/">
+          <Photo file="tomatoes-basket.jpg" alt="A basket of freshly picked tomatoes" ratio="1" sizes="(min-width: 54rem) 25vw, 50vw" />
+          <span>Tomatoes <Arrow /></span>
+        </a>
+      </div>
+
+      <p class="origin-note" data-reveal>
+        A note on origin: Oddanchatram is where our business is rooted, not a claim about where every product is grown.
+        We confirm the origin of each product with the buyer as part of the enquiry.
+      </p>
+    </div>
+  </section>
+
+  <!-- How we want to work -->
+  <section class="section" aria-labelledby="work-heading">
+    <div class="container work" data-reveal>
+      <div>
+        <p class="eyebrow">How we want to work</p>
+        <h2 id="work-heading">An emerging business, straightforward about where it stands.</h2>
+      </div>
+      <div class="prose">
+        <p>
+          We are at the beginning of our export journey, and we would rather say so plainly. What we can promise today is
+          how we will treat an enquiry: we will listen to what your market needs, tell you clearly what we can and cannot
+          offer, and follow through on what we agree.
+        </p>
+        <p>
+          As we develop our range, our ambition is to build lasting buyer relationships through clear communication and
+          attention to each enquiry.
+        </p>
+        <p class="closing-line">
+          We carry our hometown in our name—and an international outlook in our ambition.
+        </p>
+        <div class="btn-row">
+          <a class="arrow-link" href="/sourcing-quality/">How we approach sourcing &amp; quality <Arrow /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta />
+</Base>
+
+<style>
+  .name-block {
+    display: grid;
+    gap: 3rem;
+    align-items: center;
+  }
+  .work {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 54rem) {
+    .name-block,
+    .work {
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+    }
+    .work {
+      align-items: start;
+    }
+  }
+  .offer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  @media (min-width: 54rem) {
+    .offer {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  .offer__item {
+    padding: 0.6rem 0.6rem 0;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+  .offer__item:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .offer__item :global(.photo) {
+    border-radius: calc(var(--radius-lg) - 0.6rem);
+  }
+  .story-photo :global(.photo) {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .offer__item :global(.photo--cutout) {
+    background: var(--ivory);
+  }
+  .offer__item span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.9rem 0.5rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-size: clamp(1rem, 1.5vw, 1.15rem);
+  }
+  .offer__item:hover span {
+    color: var(--terracotta-deep);
+  }
+  .origin-note {
+    margin-top: 2.5rem;
+    padding: 1.1rem 1.25rem;
+    background: var(--cream);
+    border-left: 3px solid var(--terracotta);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    max-width: 48em;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+  .closing-line {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.4rem, 2.4vw, 1.85rem);
+    line-height: 1.3;
+    color: var(--green) !important;
+  }
+</style>

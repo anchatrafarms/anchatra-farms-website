@@ -1,0 +1,27 @@
+---
+// Optimised, responsive photograph. `file` is a filename in src/assets/images/.
+import { Image } from 'astro:assets';
+import { getImage } from '../data/index.js';
+
+const {
+  file,
+  alt,
+  cutout = false,
+  ratio,
+  sizes = '(min-width: 54rem) 50vw, 100vw',
+  eager = false,
+  class: className,
+} = Astro.props;
+---
+
+<figure class:list={['photo', cutout && 'photo--cutout', className]} style={ratio ? `aspect-ratio:${ratio}` : undefined}>
+  <Image
+    src={getImage(file)}
+    alt={alt}
+    widths={[480, 800, 1200, 1600]}
+    sizes={sizes}
+    quality={72}
+    loading={eager ? 'eager' : 'lazy'}
+    fetchpriority={eager ? 'high' : undefined}
+  />
+</figure>

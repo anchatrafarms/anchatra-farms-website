@@ -1,0 +1,298 @@
+---
+// Reusable product template — one page is generated for every entry in src/data/products.js
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import Arrow from '../../components/Arrow.astro';
+import ProductTile from '../../components/ProductTile.astro';
+import { products, getCategory, enquiryHref, whatsappHref } from '../../data/index.js';
+
+export function getStaticPaths() {
+  return products.map((product) => ({ params: { slug: product.slug }, props: { product } }));
+}
+
+const { product } = Astro.props;
+const category = getCategory(product.category);
+const [mainImage, ...moreImages] = product.images;
+const whatsapp = whatsappHref(product.name);
+
+const list = (value) => (Array.isArray(value) ? value.filter(Boolean).join(', ') : value);
+
+// Only confirmed details are shown; empty rows are dropped.
+const details = [
+  { label: 'Origin', value: product.origin },
+  { label: 'Available forms', value: list(product.forms) },
+  ...(product.specifications ?? []),
+  { label: 'Packaging options', value: list(product.packaging) },
+  { label: 'Minimum order quantity', value: product.moq },
+  { label: 'Availability & lead time', value: product.availability },
+  { label: 'Storage & shelf life', value: product.storage },
+].filter((row) => row.value);
+
+const documents = (product.documents ?? []).filter((doc) => doc.file);
+// The scroll marker on each product page is that product
+const rollers = { onions: 'onion', tomatoes: 'tomato', 'black-garlic': 'garlic', 'moringa-powder': 'moringa' };
+const related = products.filter((other) => other.slug !== product.slug).slice(0, 2);
+---
+
+<Base
+  title={`${product.name} — ${category?.name}`}
+  description={`${product.name} from ANCHATRA FARMS, Oddanchatram, Tamil Nadu. ${product.summary} Request a quotation.`}
+  image={mainImage.file}
+  roller={rollers[product.slug]}
+>
+  <section class="product">
+    <div class="container">
+      <nav aria-label="Breadcrumb" data-reveal>
+        <ol class="breadcrumb">
+          <li><a href="/">Home</a></li>
+          <li><a href="/products/">Our Products</a></li>
+          <li aria-current="page">{product.name}</li>
+        </ol>
+      </nav>
+
+      <div class="product__grid">
+        <div class="product__gallery" data-reveal="wipe">
+          <Photo
+            file={mainImage.file}
+            alt={mainImage.alt}
+            cutout={mainImage.cutout}
+            ratio="5 / 4"
+            eager
+            sizes="(min-width: 54rem) 55vw, 100vw"
+          />
+          {
+            moreImages.length > 0 && (
+              <div class="product__thumbs" data-count={moreImages.length}>
+                {moreImages.map((image) => (
+                  <Photo file={image.file} alt={image.alt} cutout={image.cutout} ratio="4 / 3" sizes="(min-width: 54rem) 28vw, 50vw" />
+                ))}
+              </div>
+            )
+          }
+          <p class="photo-caption">
+            Photographs are illustrative and do not show a specific consignment.
+          </p>
+        </div>
+
+        <div class="product__info">
+          <p class="eyebrow" data-reveal>
+            <a href={`/products/?category=${category?.slug}`}>{category?.name}</a>
+          </p>
+          <h1 data-split>{product.name}</h1>
+          <p class="lede" data-reveal>{product.summary}</p>
+
+          <div class="btn-row" data-reveal>
+            <a class="btn btn--primary" href={enquiryHref(product)}>Enquire About This Product <Arrow /></a>
+            {
+              whatsapp && (
+                <a class="btn btn--ghost" href={whatsapp} target="_blank" rel="noopener">
+                  Enquire on WhatsApp
+                </a>
+              )
+            }
+          </div>
+
+          <div class="prose product__intro" data-reveal>
+            {product.intro.map((paragraph) => <p>{paragraph}</p>)}
+          </div>
+
+          {
+            product.uses?.length > 0 && (
+              <div class="product__block" data-reveal>
+                <h2>Common uses</h2>
+                <ul class="uses">
+                  {product.uses.map((use) => <li>{use}</li>)}
+                </ul>
+              </div>
+            )
+          }
+
+          <div class="product__block" data-reveal>
+            <h2>Product details</h2>
+            {
+              details.length > 0 && (
+                <dl class="details">
+                  {details.map((row) => (
+                    <div>
+                      <dt>{row.label}</dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )
+            }
+            <p class="product__note">
+              {
+                details.length > 0
+                  ? 'Contact us to discuss anything not listed here, including current availability.'
+                  : 'Contact us to discuss current specifications, packaging, and availability.'
+              }
+            </p>
+          </div>
+
+          {
+            documents.length > 0 && (
+              <div class="product__block" data-reveal>
+                <h2>Supporting documents</h2>
+                <ul class="uses">
+                  {documents.map((doc) => (
+                    <li>
+                      <a href={doc.file}>{doc.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--deep" aria-labelledby="enquire-heading">
+    <div class="container enquire-band">
+      <div data-reveal="left">
+        <p class="eyebrow">Request a quotation</p>
+        <h2 id="enquire-heading">Tell us what you need in {product.name.toLowerCase()}.</h2>
+      </div>
+      <div data-reveal="right">
+        <p class="lede">
+          Share your quantity, destination and any packaging or documentation requirements. We will reply to discuss the
+          details before proposing a quotation.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn--primary" href={enquiryHref(product)}>Enquire About This Product <Arrow /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {
+    related.length > 0 && (
+      <section class="section" aria-labelledby="related-heading">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <h2 id="related-heading">More from our range</h2>
+            <p style="justify-self:end">
+              <a class="arrow-link" href="/products/">
+                All products <Arrow />
+              </a>
+            </p>
+          </div>
+          <div class="product-grid">
+            {related.map((other) => <ProductTile product={other} headingLevel="h3" />)}
+          </div>
+        </div>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .product {
+    padding-block: clamp(2rem, 4vw, 3.5rem) var(--section);
+  }
+  .product__grid {
+    display: grid;
+    gap: clamp(2.5rem, 6vw, 5rem);
+  }
+  @media (min-width: 54rem) {
+    .product__grid {
+      grid-template-columns: 1.15fr 0.85fr;
+      align-items: start;
+    }
+    .product__gallery {
+      position: sticky;
+      top: 6.5rem;
+    }
+  }
+  .product__thumbs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .product__thumbs[data-count='1'] {
+    grid-template-columns: 1fr;
+  }
+  .product__thumbs[data-count='1'] :global(.photo) {
+    aspect-ratio: 16 / 9 !important;
+  }
+  .product__info h1 {
+    font-size: clamp(2.6rem, 5.5vw, 4.4rem);
+  }
+  .product__info .eyebrow a {
+    text-decoration: none;
+  }
+  .product__info .eyebrow a:hover {
+    text-decoration: underline;
+  }
+  .product__info .lede {
+    margin-top: 1.25rem;
+  }
+  .product__intro {
+    margin-top: 2.5rem;
+  }
+  .product__block {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line);
+  }
+  .product__block h2 {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+  }
+  .uses li {
+    position: relative;
+    padding: 0.45rem 0 0.45rem 1.5rem;
+  }
+  .uses li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.1em;
+    width: 0.75rem;
+    height: 1px;
+    background: var(--terracotta-deep);
+  }
+  .details {
+    margin: 0 0 1.25rem;
+  }
+  .details div {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.8fr) 1.2fr;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .details dt {
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .details dd {
+    margin: 0;
+  }
+  .product__note {
+    padding: 1.1rem 1.25rem;
+    background: var(--ivory-deep);
+    border-left: 2px solid var(--terracotta);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-size: 0.98rem;
+  }
+  .enquire-band {
+    display: grid;
+    gap: 2rem;
+  }
+  @media (min-width: 54rem) {
+    .enquire-band {
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+  }
+</style>

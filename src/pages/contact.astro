@@ -1,0 +1,632 @@
+---
+import Base from '../layouts/Base.astro';
+import Faq from '../components/Faq.astro';
+import Arrow from '../components/Arrow.astro';
+import { site, categories, productsIn, whatsappHref, locationLine } from '../data/index.js';
+
+const { contact, form, location } = site;
+const whatsapp = whatsappHref();
+const isPreview = !form.endpoint;
+---
+
+<Base
+  title="Contact & Request a Quote"
+  description="Request a quotation from ANCHATRA FARMS for black garlic, moringa powder, onions, tomatoes or other agricultural products. Tell us your product, quantity and destination."
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Contact · Request a quote</p>
+      <h1>Tell us what your market needs.</h1>
+      <p class="lede">
+        Share the product, quantity and destination you have in mind. We will reply to discuss specifications,
+        availability and terms before sending a proposed quotation.
+      </p>
+    </div>
+  </section>
+
+  <section class="section--tight" style="padding-top:0">
+    <div class="container contact">
+      <div class="contact__form" id="quote-form" data-reveal>
+        <h2>Quotation request</h2>
+        <p class="form-hint" id="form-hint">Fields marked <span aria-hidden="true">*</span><span class="visually-hidden">with an asterisk</span> are required.</p>
+
+        {
+          isPreview && (
+            <p class="notice notice--preview" id="preview-notice">
+              <strong>Preview mode.</strong> This form is not yet connected, so enquiries cannot be sent from this page at
+              the moment.
+            </p>
+          )
+        }
+
+        <form
+          id="enquiry-form"
+          novalidate
+          data-endpoint={form.endpoint}
+          data-access-key={form.accessKey}
+          data-whatsapp={contact.whatsapp.replace(/\D/g, '')}
+          data-site-name={site.name}
+        >
+          <div class="form-status" id="form-status" role="alert" tabindex="-1" hidden></div>
+
+          <fieldset>
+            <legend>About you</legend>
+            <div class="field-grid">
+              <div class="field">
+                <label for="name">Name <span aria-hidden="true">*</span></label>
+                <input id="name" name="name" type="text" autocomplete="name" required data-label="your name" />
+              </div>
+              <div class="field">
+                <label for="company">Company <span aria-hidden="true">*</span></label>
+                <input id="company" name="company" type="text" autocomplete="organization" required data-label="your company name" />
+              </div>
+              <div class="field">
+                <label for="email">Email <span aria-hidden="true">*</span></label>
+                <input id="email" name="email" type="email" autocomplete="email" required data-label="your email address" />
+              </div>
+              <div class="field">
+                <label for="phone">Phone or WhatsApp <span class="optional">optional</span></label>
+                <input id="phone" name="phone" type="tel" autocomplete="tel" aria-describedby="phone-hint" />
+                <p class="hint" id="phone-hint">Include your country code, e.g. +44.</p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Your requirement</legend>
+            <div class="field-grid">
+              <div class="field field--full">
+                <label for="product">Product of interest <span aria-hidden="true">*</span></label>
+                <select id="product" name="product" required data-label="a product">
+                  <option value="">Select a product</option>
+                  {
+                    categories.map((category) => (
+                      <optgroup label={category.name}>
+                        {productsIn(category.slug).map((product) => (
+                          <option value={product.name} data-slug={product.slug}>
+                            {product.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))
+                  }
+                  <option value="Multiple products / Other requirement" data-slug="other">
+                    Multiple products / Other requirement
+                  </option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="quantity">Estimated quantity <span class="optional">optional</span></label>
+                <div class="quantity">
+                  <input id="quantity" name="quantity" type="text" inputmode="decimal" />
+                  <label class="visually-hidden" for="unit">Quantity unit</label>
+                  <select id="unit" name="unit">
+                    {form.quantityUnits.map((unit) => <option>{unit}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="packaging">Packaging requirements <span class="optional">optional</span></label>
+                <input id="packaging" name="packaging" type="text" />
+              </div>
+              <div class="field">
+                <label for="country">Destination country <span aria-hidden="true">*</span></label>
+                <input id="country" name="country" type="text" autocomplete="country-name" required data-label="the destination country" />
+              </div>
+              <div class="field">
+                <label for="port">Destination port or city <span class="optional">optional</span></label>
+                <input id="port" name="port" type="text" />
+              </div>
+              <div class="field field--full">
+                <label for="message">Additional requirements <span class="optional">optional</span></label>
+                <textarea id="message" name="message" rows="5" aria-describedby="message-hint"></textarea>
+                <p class="hint" id="message-hint">
+                  For example: specifications, documentation, sample requests or timing.
+                </p>
+              </div>
+            </div>
+          </fieldset>
+
+          {/* Spam trap: hidden from people, left empty */}
+          <div class="visually-hidden" aria-hidden="true">
+            <label for="website">Leave this field empty</label>
+            <input id="website" name="_gotcha" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="form-actions">
+            <button class="btn btn--primary" type="submit" id="submit-button">
+              <span data-label>Send Quotation Request</span>
+              <Arrow />
+            </button>
+            {
+              whatsapp && (
+                <button class="btn btn--green" type="button" id="whatsapp-button">
+                  Send via WhatsApp
+                </button>
+              )
+            }
+          </div>
+          {
+            whatsapp && (
+              <p class="hint form-actions__hint">
+                The first button emails your request to us. The WhatsApp button opens WhatsApp with the same details
+                written out, ready for you to press send.
+              </p>
+            )
+          }
+        </form>
+
+        <div class="form-success" id="form-success" tabindex="-1" hidden>
+          <p class="eyebrow">Enquiry sent</p>
+          <h2>Thank you — we have your request.</h2>
+          <p>
+            We will review your requirement and reply by email to discuss specifications, availability and terms.
+          </p>
+          <div class="btn-row">
+            {
+              whatsapp && (
+                <a class="btn btn--green" id="whatsapp-copy" href={whatsapp} target="_blank" rel="noopener">
+                  Send a copy on WhatsApp
+                </a>
+              )
+            }
+            <a class="btn btn--ghost" href="/products/">Back to products</a>
+          </div>
+        </div>
+      </div>
+
+      <aside class="contact__aside" aria-label="Contact information">
+        <div class="aside-block" data-reveal="right">
+          <h2>What happens next</h2>
+          <ol class="next">
+            <li>We read your requirement and check current availability.</li>
+            <li>We reply to discuss specifications, packaging and destination.</li>
+            <li>You receive a proposed quotation and terms to review.</li>
+          </ol>
+        </div>
+
+        <div class="aside-block" data-reveal="right">
+          <h2>Where we are</h2>
+          <address>
+            {site.name}<br />
+            {location.streetAddress && <>{location.streetAddress}<br /></>}
+            {locationLine}
+          </address>
+        </div>
+
+        {
+          (contact.email || contact.phone || whatsapp) && (
+            <div class="aside-block" data-reveal="right">
+              <h2>Direct contact</h2>
+              <ul class="direct">
+                {contact.email && <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
+                {contact.phone && <li><a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}>{contact.phone}</a></li>}
+                {whatsapp && <li><a href={whatsapp} target="_blank" rel="noopener">Message us on WhatsApp</a></li>}
+              </ul>
+            </div>
+          )
+        }
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--deep" aria-labelledby="contact-faq-heading">
+    <div class="container contact-faq">
+      <div data-reveal>
+        <p class="eyebrow">Before you send</p>
+        <h2 id="contact-faq-heading">Buyer questions</h2>
+      </div>
+      <Faq />
+    </div>
+  </section>
+</Base>
+
+<script>
+  const form = document.getElementById('enquiry-form');
+  const statusBox = document.getElementById('form-status');
+  const success = document.getElementById('form-success');
+  const button = document.getElementById('submit-button');
+  const buttonLabel = button.querySelector('[data-label]');
+  const productSelect = document.getElementById('product');
+  const whatsappButton = document.getElementById('whatsapp-button');
+  const whatsappCopy = document.getElementById('whatsapp-copy');
+  const previewNotice = document.getElementById('preview-notice');
+  const { endpoint, accessKey, whatsapp, siteName } = form.dataset;
+  const defaultLabel = buttonLabel.textContent;
+
+  // ── Preselect the product from links such as /contact/?product=black-garlic
+  const requested = new URLSearchParams(window.location.search).get('product');
+  if (requested) {
+    const match = Array.from(productSelect.options).find((option) => option.dataset.slug === requested);
+    if (match) productSelect.value = match.value;
+  }
+
+  // ── One tidy summary of the enquiry, shared by the email and the WhatsApp message
+  function readEnquiry() {
+    const data = Object.fromEntries(new FormData(form).entries());
+    const clean = (value) => String(value || '').trim();
+    return {
+      honeypot: clean(data._gotcha),
+      contact: [
+        ['Name', clean(data.name)],
+        ['Company', clean(data.company)],
+        ['Email', clean(data.email)],
+        ['Phone / WhatsApp', clean(data.phone)],
+      ],
+      requirement: [
+        ['Product', clean(data.product)],
+        ['Estimated quantity', clean(data.quantity) ? `${clean(data.quantity)} ${clean(data.unit)}` : ''],
+        ['Packaging', clean(data.packaging)],
+        ['Destination country', clean(data.country)],
+        ['Destination port / city', clean(data.port)],
+      ],
+      notes: clean(data.message),
+      product: clean(data.product),
+      company: clean(data.company),
+      email: clean(data.email),
+    };
+  }
+
+  // WhatsApp shows *text* in bold, so the message arrives as a short, sectioned brief
+  function whatsappMessage(enquiry) {
+    const section = (title, rows) => {
+      const lines = rows.filter(([, value]) => value).map(([label, value]) => `${label}: ${value}`);
+      return lines.length ? [`*${title}*`, ...lines, ''] : [];
+    };
+    return [
+      `*New quotation request — ${siteName}*`,
+      '',
+      ...section('Contact', enquiry.contact),
+      ...section('Requirement', enquiry.requirement),
+      ...(enquiry.notes ? ['*Additional requirements*', enquiry.notes, ''] : []),
+      'Sent from the website enquiry form.',
+    ].join('\n');
+  }
+
+  const whatsappUrl = (enquiry) => `https://wa.me/${whatsapp}?text=${encodeURIComponent(whatsappMessage(enquiry))}`;
+
+  // ── Validation
+  function setError(field, message) {
+    const wrapper = field.closest('.field');
+    let error = wrapper.querySelector('.error');
+    if (message) {
+      if (!error) {
+        error = document.createElement('p');
+        error.className = 'error';
+        error.id = `${field.id}-error`;
+        wrapper.appendChild(error);
+      }
+      error.textContent = message;
+      field.setAttribute('aria-invalid', 'true');
+      field.setAttribute('aria-errormessage', error.id);
+    } else {
+      error?.remove();
+      field.removeAttribute('aria-invalid');
+      field.removeAttribute('aria-errormessage');
+    }
+  }
+
+  function validate(field) {
+    const value = field.value.trim();
+    let message = '';
+    if (field.required && !value) {
+      message = `Please ${field.tagName === 'SELECT' ? 'select' : 'enter'} ${field.dataset.label}.`;
+    } else if (field.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
+      message = 'Please enter a valid email address, such as name@company.com.';
+    }
+    setError(field, message);
+    return !message;
+  }
+
+  const requiredFields = Array.from(form.querySelectorAll('[required]'));
+  requiredFields.forEach((field) => {
+    field.addEventListener('blur', () => validate(field));
+    field.addEventListener('input', () => {
+      if (field.hasAttribute('aria-invalid')) validate(field);
+    });
+  });
+
+  function showStatus(kind, html) {
+    statusBox.className = `form-status notice notice--${kind}`;
+    statusBox.innerHTML = html;
+    statusBox.hidden = false;
+    statusBox.focus();
+  }
+
+  function setLoading(loading) {
+    button.disabled = loading;
+    form.setAttribute('aria-busy', String(loading));
+    buttonLabel.textContent = loading ? 'Sending…' : defaultLabel;
+  }
+
+  // ── Send the same enquiry as a ready-written WhatsApp message
+  whatsappButton?.addEventListener('click', () => {
+    statusBox.hidden = true;
+    const invalid = requiredFields.filter((field) => !validate(field));
+    if (invalid.length) {
+      invalid[0].focus();
+      return;
+    }
+    const enquiry = readEnquiry();
+    if (enquiry.honeypot) return;
+    window.open(whatsappUrl(enquiry), '_blank', 'noopener');
+  });
+
+  // ── Submission
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    statusBox.hidden = true;
+
+    const invalid = requiredFields.filter((field) => !validate(field));
+    if (invalid.length) {
+      invalid[0].focus();
+      return;
+    }
+
+    const enquiry = readEnquiry();
+    if (enquiry.honeypot) return; // filled in by a bot
+
+    // No form service configured: never pretend the enquiry was sent.
+    if (!endpoint) {
+      previewNotice?.remove();
+      showStatus(
+        'preview',
+        '<strong>Not sent — preview mode.</strong> Your details passed validation and are still in the form, but this form is not yet connected to an inbox.',
+      );
+      return;
+    }
+
+    // Each entry becomes one labelled row in the email, in this order. Empty answers are left out.
+    const subject = `Quotation request: ${enquiry.product} — ${enquiry.company}`;
+    const rows = [...enquiry.contact, ...enquiry.requirement, ['Additional requirements', enquiry.notes]];
+    const payload = {
+      _subject: subject,
+      _template: 'table',
+      _captcha: 'false',
+      _replyto: enquiry.email,
+      ...Object.fromEntries(rows.filter(([, value]) => value)),
+      ...(accessKey && { access_key: accessKey, subject }),
+    };
+
+    setLoading(true);
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || String(result.success) === 'false') {
+        throw new Error(`Form service responded ${response.status}: ${result.message || ''}`);
+      }
+
+      // Only reached after the form service confirms receipt.
+      if (whatsappCopy && whatsapp) whatsappCopy.href = whatsappUrl(enquiry);
+      form.hidden = true;
+      document.getElementById('form-hint').hidden = true;
+      success.hidden = false;
+      success.focus();
+      form.reset();
+    } catch (error) {
+      console.error(error);
+      showStatus(
+        'error',
+        '<strong>We could not send your enquiry.</strong> Your details are still in the form — please check your connection and try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  });
+</script>
+
+<style>
+  .contact {
+    display: grid;
+    gap: clamp(3rem, 6vw, 5rem);
+  }
+  @media (min-width: 60rem) {
+    .contact {
+      grid-template-columns: 1.5fr 0.8fr;
+      align-items: start;
+    }
+    .contact__aside {
+      position: sticky;
+      top: 7rem;
+    }
+  }
+  .contact__form {
+    padding: clamp(1.5rem, 4vw, 3rem);
+    background: #fffdf8;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .contact__form h2 {
+    font-size: clamp(1.7rem, 3vw, 2.3rem);
+  }
+  .form-hint {
+    margin-top: 0.5rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  fieldset {
+    margin: 2rem 0 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  legend {
+    width: 100%;
+    padding: 0 0 0.75rem;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta-deep);
+  }
+  .field-grid {
+    display: grid;
+    gap: 1.25rem;
+  }
+  @media (min-width: 40rem) {
+    .field-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .field--full {
+      grid-column: 1 / -1;
+    }
+  }
+  .field {
+    min-width: 0;
+  }
+  label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .optional {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: 0.25rem;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid rgba(37, 41, 35, 0.4);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--charcoal);
+    font: inherit;
+    font-size: 1rem;
+  }
+  textarea {
+    resize: vertical;
+  }
+  input:hover,
+  select:hover,
+  textarea:hover {
+    border-color: var(--green);
+  }
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--green);
+    outline-offset: 1px;
+    border-color: var(--green);
+  }
+  [aria-invalid='true'] {
+    border-color: #a3271b;
+    background: #fff8f6;
+  }
+  .field :global(.error) {
+    margin: 0.4rem 0 0;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #a3271b;
+  }
+  .hint {
+    margin: 0.4rem 0 0;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .quantity {
+    display: grid;
+    grid-template-columns: 1fr minmax(7.5rem, 0.9fr);
+    gap: 0.5rem;
+  }
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .form-actions__hint {
+    margin-top: 0.9rem;
+    max-width: 34em;
+  }
+  .notice,
+  :global(.form-status.notice) {
+    margin: 1.5rem 0 0;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius);
+    border-left: 3px solid;
+    font-size: 0.95rem;
+  }
+  .notice--preview,
+  :global(.form-status.notice--preview) {
+    background: #f4ead3;
+    border-color: #a87a17;
+    color: #4a3a10;
+  }
+  :global(.form-status.notice--error) {
+    background: #fbe9e5;
+    border-color: #a3271b;
+    color: #6d1a12;
+  }
+  .form-success {
+    padding-block: 1rem;
+  }
+  .form-success:focus {
+    outline: none;
+  }
+  .form-success p:not(.eyebrow) {
+    margin-top: 1rem;
+    color: var(--muted);
+    max-width: 32em;
+  }
+
+  .aside-block + .aside-block {
+    margin-top: 2.25rem;
+    padding-top: 2.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .aside-block h2 {
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta-deep);
+    margin-bottom: 1rem;
+  }
+  .aside-block address {
+    font-style: normal;
+  }
+  .next {
+    counter-reset: next;
+  }
+  .next li {
+    counter-increment: next;
+    position: relative;
+    padding: 0 0 1rem 2.5rem;
+  }
+  .next li::before {
+    content: counter(next);
+    position: absolute;
+    left: 0;
+    font-weight: 600;
+    font-size: 1.15rem;
+    top: 0.05rem;
+    color: var(--green);
+  }
+  .direct li {
+    margin-bottom: 0.5rem;
+  }
+
+  .contact-faq {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 54rem) {
+    .contact-faq {
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 5rem;
+    }
+  }
+</style>

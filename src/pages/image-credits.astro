@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import { credits } from '../data/index.js';
+---
+
+<Base
+  title="Image Credits"
+  description="Credits and licences for the photographs used on the ANCHATRA FARMS website."
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Image credits</p>
+      <h1>Photography on this site.</h1>
+      <p class="lede">
+        The photographs currently on this website are illustrative images from Wikimedia Commons, used under open
+        licences. They do not depict ANCHATRA FARMS premises, staff, consignments or the Oddanchatram market. Images have
+        been cropped and resized.
+      </p>
+    </div>
+  </section>
+
+  <section class="section--tight" style="padding-top:0">
+    <div class="container">
+      <ul class="credits">
+        {
+          credits.map((credit) => (
+            <li data-reveal>
+              <a href={credit.source} rel="noopener">{credit.title.replace(/\.[a-z]+$/i, '')}</a>
+              <span>
+                by {credit.author || 'the author named at the source'} ·{' '}
+                {credit.licenceUrl ? <a href={credit.licenceUrl} rel="noopener license">{credit.licence}</a> : credit.licence}
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .credits {
+    max-width: 52rem;
+    border-top: 1px solid var(--line);
+  }
+  .credits li {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .credits span {
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .credits li > a {
+    overflow-wrap: anywhere;
+  }
+</style>

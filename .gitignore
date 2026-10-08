@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output and Astro cache
+dist/
+.astro/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.suo
+*.user
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

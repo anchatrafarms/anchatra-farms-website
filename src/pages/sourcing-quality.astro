@@ -1,0 +1,258 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import { documents } from '../data/documents.js';
+
+const stages = [
+  {
+    title: 'Understanding the buyer’s requirements',
+    text: 'Every enquiry begins with your brief. We ask about the product, the intended use, the quantity, the destination and anything your market or customers insist on — so that what we propose is based on your requirement rather than our assumptions.',
+    points: ['Product, form and grade', 'Estimated quantity and timing', 'Destination market and its import requirements'],
+  },
+  {
+    title: 'Confirming product availability and specifications',
+    text: 'We check what is currently available through our sourcing relationships and confirm it with you before quoting. If we cannot meet a specification, or a product is not available at the time, we will tell you rather than leave it open.',
+    points: ['Current availability', 'The specification to be agreed in writing', 'Product origin, confirmed per product'],
+  },
+  {
+    title: 'Discussing packaging and handling requirements',
+    text: 'Fresh produce and processed products travel differently. We discuss pack sizes, labelling and handling needs with you for each order and set out what has been agreed in the quotation.',
+    points: ['Pack size and packing format', 'Labelling and marking', 'Handling needs for the product and route'],
+  },
+  {
+    title: 'Confirming applicable documentation before an order',
+    text: 'Documentation requirements differ by product and destination country. Before an order is confirmed, we agree with you which documents apply and who is responsible for each, so there are no surprises later.',
+    points: ['Documents required by the destination market', 'Any buyer-specific paperwork', 'Agreed before the order is confirmed'],
+  },
+];
+---
+
+<Base
+  title="Sourcing & Quality"
+  description="How ANCHATRA FARMS approaches sourcing and quality: local market relationships in Oddanchatram, and product requirements, packaging and documentation agreed with each buyer before an order."
+  image="onions-market.jpg"
+>
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Sourcing &amp; quality</p>
+      <h1>Agreed clearly, before anything ships.</h1>
+      <p class="lede">
+        We believe confidence comes from clarity. This page sets out how we source and the commitments we make to every
+        buyer about how an enquiry will be handled.
+      </p>
+    </div>
+  </section>
+
+  <section class="section on-dark" aria-labelledby="relationships-heading">
+    <div class="container split split--flip">
+      <div class="split__media" data-reveal="wipe">
+        <Photo file="onions-market.jpg" alt="A basket of onions beside green beans at a vegetable market stall" ratio="5 / 4" />
+      </div>
+      <div class="split__body" data-reveal="left">
+        <p class="eyebrow">Local market relationships</p>
+        <h2 id="relationships-heading">Sourcing that starts with people we know.</h2>
+        <p class="lede" style="margin-top:1.5rem">
+          ANCHATRA FARMS is a sourcing and export business. Our starting point is our founder’s personal relationships
+          with shop owners in the Oddanchatram vegetable market — connections that let us ask direct questions and get
+          direct answers about what is available.
+        </p>
+        <p class="lede" style="margin-top:1rem">
+          Those relationships are where sourcing begins, not a guarantee in themselves. What matters for your order is
+          what we agree with you, product by product.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="approach-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div>
+          <p class="eyebrow">Our approach</p>
+          <h2 id="approach-heading">Four things we settle with you before an order.</h2>
+        </div>
+        <p class="lede">
+          These are our working commitments. The specifics are discussed and confirmed for each product and enquiry.
+        </p>
+      </div>
+
+      <ol class="stages">
+        {
+          stages.map((stage, index) => (
+            <li class="stage" data-reveal>
+              <span class="stage__number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+              <div>
+                <h3>{stage.title}</h3>
+                <p>{stage.text}</p>
+              </div>
+              <ul>
+                {stage.points.map((point) => <li>{point}</li>)}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--deep" aria-labelledby="honest-heading">
+    <div class="container honest">
+      <div data-reveal>
+        <p class="eyebrow">Plain speaking</p>
+        <h2 id="honest-heading">What you can expect from us.</h2>
+      </div>
+      <ul class="honest__list">
+        <li data-reveal>
+          <span class="icon-badge"><Icon name="check" /></span>
+          <h3>Verifiable information only</h3>
+          <p>We share details we can support. If something is not yet confirmed, we will say that it is not yet confirmed.</p>
+        </li>
+        <li data-reveal>
+          <span class="icon-badge"><Icon name="chat" /></span>
+          <h3>A clear answer either way</h3>
+          <p>If a product, specification or destination is not something we can serve, we will tell you promptly.</p>
+        </li>
+        <li data-reveal>
+          <span class="icon-badge"><Icon name="document" /></span>
+          <h3>Requirements in writing</h3>
+          <p>What we agree on product, packaging and documentation is set out in the quotation before you commit.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  {/* Hidden until genuine documents are added to src/data/documents.js */}
+  {
+    documents.length > 0 && (
+      <section class="section" aria-labelledby="documents-heading">
+        <div class="container">
+          <div class="section-head" data-reveal>
+            <div>
+              <p class="eyebrow">Certificates &amp; documents</p>
+              <h2 id="documents-heading">Verified documents.</h2>
+            </div>
+          </div>
+          <ul class="documents">
+            {documents.map((doc) => (
+              <li data-reveal>
+                <h3>{doc.title}</h3>
+                <p>
+                  {[doc.issuer, doc.reference, doc.validUntil && `Valid until ${doc.validUntil}`].filter(Boolean).join(' · ')}
+                </p>
+                {doc.file && <a class="arrow-link" href={doc.file}>View document</a>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <ClosingCta
+    heading="Have a specification in mind?"
+    text="Send it to us. We will review it against what we can currently source and reply with a clear answer."
+  />
+</Base>
+
+<style>
+  .stages {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .stage {
+    display: grid;
+    gap: 1.25rem;
+    padding: clamp(1.5rem, 3.5vw, 2.75rem);
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  .stage:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .stage__number {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.25rem, 4vw, 3.25rem);
+    line-height: 1;
+    color: var(--terracotta-deep);
+  }
+  .stage h3 {
+    font-size: clamp(1.35rem, 2.1vw, 1.7rem);
+  }
+  .stage p {
+    margin-top: 1rem;
+    color: var(--muted);
+    max-width: 36em;
+  }
+  .stage ul li {
+    position: relative;
+    padding: 0.55rem 0 0.55rem 1.5rem;
+    font-size: 0.97rem;
+    border-bottom: 1px dashed var(--line);
+  }
+  .stage ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.25em;
+    width: 0.75rem;
+    height: 1px;
+    background: var(--green);
+  }
+  @media (min-width: 54rem) {
+    .stage {
+      grid-template-columns: 6rem 1.3fr 1fr;
+      gap: 2rem 3.5rem;
+    }
+  }
+  .honest {
+    display: grid;
+    gap: 3rem;
+  }
+  .honest__list {
+    display: grid;
+    gap: 2rem;
+  }
+  .honest__list h3 {
+    font-size: 1.22rem;
+    margin-top: 1.25rem;
+  }
+  .honest__list p {
+    margin-top: 0.5rem;
+    color: var(--muted);
+  }
+  .honest__list li {
+    padding: clamp(1.25rem, 2.5vw, 1.75rem);
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (min-width: 40rem) {
+    .honest__list {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+  }
+  @media (min-width: 54rem) {
+    .honest {
+      gap: 3.5rem;
+    }
+  }
+  .documents {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .documents li {
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .documents p {
+    color: var(--muted);
+    margin: 0.5rem 0 1rem;
+  }
+</style>

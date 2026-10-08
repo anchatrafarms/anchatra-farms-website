@@ -1,0 +1,950 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import Arrow from '../components/Arrow.astro';
+import Icon from '../components/Icon.astro';
+import ClosingCta from '../components/ClosingCta.astro';
+import { site, categories, products, getProduct, getCategory, productHref } from '../data/index.js';
+
+// Hero slideshow: each slide pairs one product with a full-width background photograph.
+// Change the order, the products or the background files here.
+const slides = [
+  { product: getProduct('moringa-powder'), background: 'moringa-leaves.jpg' },
+  { product: getProduct('black-garlic'), background: 'moringa-powder-tray.jpg' },
+  { product: getProduct('onions'), background: 'market-stall.jpg' },
+  { product: getProduct('tomatoes'), background: 'tomatoes-vine.jpg' },
+].filter((slide) => slide.product);
+
+const two = (n) => String(n).padStart(2, '0');
+
+// Short facts shown in the strip under the hero. Confirmed information only.
+const facts = [
+  { label: 'Based in', value: `${site.location.town}, ${site.location.state}` },
+  { label: 'Our range', value: `${products.length} products across ${categories.length} categories` },
+  { label: 'Supplying', value: 'Importers, food brands & food service' },
+  { label: 'Terms', value: 'Agreed in writing, enquiry by enquiry' },
+];
+
+// The full version of these commitments lives on the Sourcing & Quality page.
+const principles = [
+  {
+    title: 'Sourcing through people we know',
+    text: 'Our starting point is our founder’s personal relationships with shop owners in the Oddanchatram vegetable market.',
+  },
+  {
+    title: 'Requirements set out in writing',
+    text: 'What we agree on product, packaging and documentation goes into the quotation before you commit.',
+  },
+  {
+    title: 'A clear answer either way',
+    text: 'If a product, specification or destination is not something we can serve, we tell you promptly.',
+  },
+];
+
+const steps = [
+  { title: 'Share your requirement', text: 'Tell us the products and quantities you need.' },
+  { title: 'Discuss the detail', text: 'We talk through specifications, availability and destination.' },
+  { title: 'Review the quotation', text: 'You receive a proposed quotation and terms to consider.' },
+  { title: 'Confirm the order', text: 'We confirm the order and the agreed fulfilment arrangements.' },
+];
+---
+
+<Base
+  description="Black garlic, moringa powder and fresh produce from ANCHATRA FARMS — an emerging agricultural export business rooted in Oddanchatram, Tamil Nadu. Trade enquiries welcome."
+>
+  <!-- A. Hero -->
+  <section class="hero on-dark" data-hero>
+    <div class="hero__bg" aria-hidden="true">
+      {
+        slides.map((slide, index) => (
+          <div class:list={['hero__bg-slide', index === 0 && 'is-active']} data-bg>
+            <Photo file={slide.background} alt="" eager={index === 0} sizes="100vw" />
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="container hero__main">
+      <div class="hero__copy">
+        <p class="eyebrow">Agricultural sourcing &amp; export · Tamil Nadu, India</p>
+        <h1>
+          <span class="hero__line"><span>Rooted in Oddanchatram.</span></span>
+          <span class="hero__line"><em>Connecting with the world.</em></span>
+        </h1>
+        <p class="lede">
+          Black garlic, moringa powder and fresh produce from ANCHATRA FARMS — an emerging agricultural export business
+          shaped by local market relationships in Tamil Nadu.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn--sand" href="/products/">Explore Our Products <Arrow /></a>
+          <a class="btn btn--ghost" href="/contact/#quote-form">Request a Quote</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide index: one tab per product, with a bar that fills while its slide is showing -->
+    <div class="container">
+      <ol class="hero__index">
+        {
+          slides.map(({ product }, index) => (
+            <li>
+              <button type="button" class="hero__tab" data-tab aria-current={index === 0 ? 'true' : undefined}>
+                <span class="hero__tab-bar" aria-hidden="true">
+                  <span class="hero__tab-fill" data-fill />
+                </span>
+                <span class="hero__tab-num" aria-hidden="true">{two(index + 1)}</span>
+                <span class="hero__tab-name">{product.name}</span>
+                <span class="hero__tab-cat">{getCategory(product.category)?.shortName}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <!-- Curved lower edge: a sand wave behind, a drawn line, and the page colour in front -->
+    <svg class="hero__curve hero__curve--back" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 62c220 56 470 50 720 8s500-48 720-6v56H0Z"></path>
+    </svg>
+    <svg class="hero__curve hero__curve--line" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 46c240 58 480 50 720 10s500-48 720-8" vector-effect="non-scaling-stroke"></path>
+    </svg>
+    <svg class="hero__curve hero__curve--front" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 80c260 46 500 38 760 4s480-38 680-2v38H0Z"></path>
+    </svg>
+  </section>
+
+  <!-- B. At a glance -->
+  <section class="facts" aria-label="ANCHATRA FARMS at a glance">
+    <div class="container">
+      <dl class="facts__list">
+        {
+          facts.map((fact) => (
+            <div class="fact" data-reveal>
+              <dt>{fact.label}</dt>
+              <dd>{fact.value}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <!-- C. The range -->
+  <section class="section" id="range" aria-labelledby="range-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div>
+          <p class="eyebrow">Our range</p>
+          <h2 id="range-heading">A focused range, <em>built to grow.</em></h2>
+        </div>
+        <div>
+          <p class="lede">
+            Black garlic and moringa powder lead our offer, supported by fresh produce from our hometown market. Form,
+            specification and packing are agreed with you for each enquiry.
+          </p>
+          <div class="btn-row">
+            <a class="arrow-link" href="/products/">View the full catalogue <Arrow /></a>
+          </div>
+        </div>
+      </div>
+
+      <ul class="range">
+        {
+          products.map((product, index) => (
+            <li data-reveal>
+              <a class="pcard" href={productHref(product)}>
+                <div class="pcard__media">
+                  <Photo
+                    file={product.images[0].file}
+                    alt={product.images[0].alt}
+                    cutout={product.images[0].cutout}
+                    ratio="4 / 5"
+                    sizes="(min-width: 64rem) 22vw, (min-width: 40rem) 45vw, 100vw"
+                  />
+                </div>
+                <div class="pcard__body">
+                  <p class="pcard__meta">
+                    <span>{two(index + 1)}</span> {getCategory(product.category)?.shortName}
+                  </p>
+                  <h3>{product.name}</h3>
+                  <p class="pcard__summary">{product.summary}</p>
+                  <span class="pcard__more">
+                    View product
+                    <span class="pcard__arrow">
+                      <Arrow />
+                    </span>
+                  </span>
+                </div>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- D. Why buyers talk to us -->
+  <section class="section on-dark why" aria-labelledby="why-heading">
+    <div class="container why__grid">
+      <div class="why__intro" data-reveal>
+        <p class="eyebrow">Why buyers talk to us</p>
+        <h2 id="why-heading">Confidence comes from <em>clarity.</em></h2>
+        <p class="lede">
+          We are at the beginning of our export journey, and we would rather say so plainly. This is how we handle every
+          enquiry.
+        </p>
+        <div class="btn-row">
+          <a class="btn btn--ghost" href="/sourcing-quality/">Sourcing &amp; quality <Arrow /></a>
+        </div>
+      </div>
+      <ol class="principles">
+        {
+          principles.map((principle, index) => (
+            <li class="principle" data-reveal>
+              <span class="principle__index" aria-hidden="true">{two(index + 1)}</span>
+              <div>
+                <h3>{principle.title}</h3>
+                <p>{principle.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- E. Our Oddanchatram story -->
+  <section class="section" aria-labelledby="story-heading">
+    <div class="container split">
+      <div class="split__media story-media" data-reveal="wipe">
+        <Photo file={site.locationImage.file} alt={site.locationImage.alt} ratio="4 / 5" />
+        <p class="story-badge">
+          <Icon name="pin" size={18} />
+          <span>
+            <strong>Based in {site.location.town}</strong>
+            {site.location.district}, {site.location.state}
+          </span>
+        </p>
+        {site.locationImage.caption && <p class="photo-caption">{site.locationImage.caption}</p>}
+      </div>
+      <div class="split__body" data-reveal="right">
+        <p class="eyebrow">Our Oddanchatram story</p>
+        <h2 id="story-heading">Our name carries our hometown.</h2>
+        <div class="story-name">
+          <p class="namemark" aria-label="Oddanchatram, with the letters ANCHATRA highlighted">
+            <span aria-hidden="true">Odd</span><strong aria-hidden="true">anchatra</strong><span aria-hidden="true">m</span>
+          </p>
+          <p class="namemark-note">ANCHATRA is taken from the middle of Oddanchatram.</p>
+        </div>
+        <div class="prose">
+          <p>
+            Oddanchatram is a market town in the Dindigul district of Tamil Nadu, and it is where our founder is from.
+            Personal relationships with shop owners in its vegetable market were the starting point for this business.
+          </p>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn--green" href="/our-story/">Read our story <Arrow /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- F. How a buying enquiry works -->
+  <section class="section section--deep" aria-labelledby="process-heading">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div>
+          <p class="eyebrow">How a buying enquiry works</p>
+          <h2 id="process-heading">Four clear steps, from first message to confirmed order.</h2>
+        </div>
+        <p class="lede">This is the process we intend to follow with every buyer, so you know what to expect.</p>
+      </div>
+      <ol class="steps">
+        {
+          steps.map((step, index) => (
+            <li data-reveal>
+              <span class="steps__number" aria-hidden="true">{two(index + 1)}</span>
+              <div class="steps__card">
+                <h3>{step.title}</h3>
+                <p>{step.text}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="steps__cta" data-reveal>
+        <p>Ready when you are — step one takes a couple of minutes.</p>
+        <a class="btn btn--sand" href="/contact/#quote-form">Start with your requirement <Arrow /></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- G. Closing enquiry section -->
+  <ClosingCta />
+</Base>
+
+<script>
+  // Hero slideshow: the background and the tab index move together.
+  // Each tab's bar fills while its slide shows; when the fill finishes, the next slide starts.
+  const hero = document.querySelector('[data-hero]');
+  if (hero) {
+    const backgrounds = [...hero.querySelectorAll('[data-bg]')];
+    const tabs = [...hero.querySelectorAll('[data-tab]')];
+    const fills = [...hero.querySelectorAll('[data-fill]')];
+    const count = tabs.length;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let current = 0;
+
+    const show = (index) => {
+      current = (index + count) % count;
+      backgrounds.forEach((item, i) => item.classList.toggle('is-active', i === current));
+      tabs.forEach((tab, i) => {
+        if (i === current) tab.setAttribute('aria-current', 'true');
+        else tab.removeAttribute('aria-current');
+      });
+    };
+
+    tabs.forEach((tab, i) => tab.addEventListener('click', () => show(i)));
+
+    if (!reduceMotion && count > 1) {
+      fills.forEach((fill, i) =>
+        fill.addEventListener('animationend', () => {
+          if (i === current) show(current + 1);
+        }),
+      );
+    }
+  }
+</script>
+
+<style>
+  /* ── Hero ─────────────────────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: min(calc(100svh - 6rem), 56rem);
+    padding-bottom: clamp(1.75rem, 5vw, 4.75rem); /* room for the curved edge */
+    background: var(--green-deep);
+  }
+
+  /* Background slideshow: slides cross-fade while the visible one drifts slowly */
+  .hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .hero__bg-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.6s ease;
+  }
+  .hero__bg-slide.is-active {
+    opacity: 1;
+  }
+  .hero__bg-slide :global(.photo) {
+    height: 100%;
+    border-radius: 0;
+    background: none;
+  }
+  .hero__bg-slide.is-active :global(img) {
+    animation: drift 9s ease-out both;
+  }
+  @keyframes drift {
+    from {
+      transform: scale(1.12);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  /* Dark on the left for the text, clearer on the right so the photograph shows */
+  .hero__bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(16, 48, 42, 0.35), transparent 30%, rgba(16, 48, 42, 0.86)),
+      linear-gradient(96deg, rgba(16, 48, 42, 0.95) 8%, rgba(16, 48, 42, 0.78) 44%, rgba(16, 48, 42, 0.32) 78%, rgba(16, 48, 42, 0.42));
+  }
+  @media (max-width: 53.99rem) {
+    .hero__bg::after {
+      background: linear-gradient(180deg, rgba(16, 48, 42, 0.9), rgba(16, 48, 42, 0.74) 55%, rgba(16, 48, 42, 0.9));
+    }
+  }
+
+  .hero__main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    padding-block: clamp(3.5rem, 8vw, 6rem);
+  }
+  .hero__copy {
+    flex: 1;
+    min-width: 0;
+  }
+  .hero .eyebrow {
+    color: var(--sand);
+    animation: rise 0.9s var(--ease) both;
+  }
+  .hero h1 {
+    font-weight: 600;
+    font-size: clamp(2.5rem, 1rem + 6vw, 5.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+    text-shadow: 0 2px 30px rgba(8, 26, 22, 0.45);
+  }
+  /* Each headline line slides up from behind its own edge */
+  .hero__line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.14em; /* room for descenders inside the clip */
+    margin-bottom: -0.14em;
+  }
+  .hero__line > * {
+    display: block;
+    animation: line-up 1.1s var(--ease) 0.1s both;
+  }
+  .hero__line + .hero__line > * {
+    animation-delay: 0.24s;
+  }
+  @keyframes line-up {
+    from {
+      transform: translateY(115%);
+    }
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 500;
+  }
+  .hero .lede {
+    margin-top: 1.9rem;
+    color: rgba(246, 242, 233, 0.9);
+    animation: rise 0.9s var(--ease) 0.45s both;
+  }
+  .hero .btn-row {
+    animation: rise 0.9s var(--ease) 0.55s both;
+  }
+  .hero .btn {
+    min-height: 3.4rem;
+    padding-inline: 1.9rem;
+    font-size: 1rem;
+  }
+  .hero .btn--ghost {
+    background: rgba(246, 242, 233, 0.08);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Curved lower edge */
+  .hero__curve {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 100%;
+    height: clamp(2.75rem, 7.5vw, 7rem);
+    pointer-events: none;
+  }
+  .hero__curve--back {
+    fill: var(--sand);
+    opacity: 0.4;
+    transform-origin: bottom;
+    animation: swell 7s ease-in-out infinite alternate;
+  }
+  .hero__curve--line {
+    fill: none;
+    stroke: var(--sand);
+    stroke-width: 1.5;
+    animation: curve-in 1.9s var(--ease) 0.5s both;
+  }
+  .hero__curve--front {
+    fill: var(--ivory);
+  }
+  @keyframes swell {
+    from {
+      transform: scaleY(0.82);
+    }
+    to {
+      transform: scaleY(1.22);
+    }
+  }
+  @keyframes curve-in {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0);
+    }
+  }
+  /* Slide index */
+  .hero__index {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(0.75rem, 2vw, 1.75rem);
+    animation: rise 1s var(--ease) 0.65s both;
+  }
+  @media (min-width: 54rem) {
+    .hero__index {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .hero__tab {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.85rem;
+    width: 100%;
+    padding: 1.15rem 0 1.5rem;
+    border: 0;
+    background: none;
+    color: var(--ivory);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    opacity: 0.62;
+    transition: opacity 0.35s var(--ease);
+  }
+  .hero__tab:hover,
+  .hero__tab[aria-current='true'] {
+    opacity: 1;
+  }
+  .hero__tab-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: var(--line-light);
+    overflow: hidden;
+  }
+  .hero__tab-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--sand);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .hero__tab[aria-current='true'] .hero__tab-fill {
+    animation: fill 6.5s linear forwards;
+  }
+  /* Hold the slide while someone is reading or tabbing through the index */
+  .hero__index:hover .hero__tab-fill,
+  .hero__index:focus-within .hero__tab-fill {
+    animation-play-state: paused;
+  }
+  @keyframes fill {
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero__tab[aria-current='true'] .hero__tab-fill {
+      animation: none;
+      transform: none;
+    }
+    .hero__curve--back {
+      animation: none;
+    }
+  }
+  .hero__tab-num {
+    grid-row: span 2;
+    padding-top: 0.2rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--sand);
+  }
+  .hero__tab-name {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    line-height: 1.3;
+  }
+  .hero__tab-cat {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(246, 242, 233, 0.7);
+  }
+
+  /* ── At a glance ──────────────────────────────────────────────────────── */
+  .facts {
+    border-bottom: 1px solid var(--line);
+  }
+  .facts__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+  }
+  .fact {
+    padding: clamp(1.25rem, 2.6vw, 2rem) clamp(0.75rem, 2vw, 1.75rem) clamp(1.25rem, 2.6vw, 2rem) 0;
+  }
+  .fact:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
+  }
+  @media (min-width: 54rem) {
+    .facts__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .fact:nth-child(n + 3) {
+      border-top: 0;
+    }
+    .fact + .fact {
+      padding-left: clamp(1rem, 2vw, 1.75rem);
+      border-left: 1px solid var(--line);
+    }
+  }
+  .fact dt {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--terracotta-deep);
+  }
+  .fact dd {
+    margin: 0.55rem 0 0;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.08rem, 1.6vw, 1.35rem);
+    line-height: 1.3;
+    letter-spacing: -0.012em;
+    color: var(--green);
+  }
+
+  /* ── The range ────────────────────────────────────────────────────────── */
+  .section-head .btn-row {
+    margin-top: 1.5rem;
+  }
+  .range {
+    display: grid;
+    gap: clamp(1.25rem, 2.4vw, 1.75rem);
+  }
+  @media (min-width: 40rem) {
+    .range {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .range {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .range > li {
+    display: flex;
+  }
+  .pcard {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform 0.45s var(--ease),
+      box-shadow 0.45s var(--ease),
+      border-color 0.45s var(--ease);
+  }
+  .pcard:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(23, 63, 53, 0.32);
+  }
+  .pcard__media :global(.photo) {
+    border-radius: 0;
+  }
+  /* Single-column cards use a shallower photograph so the list stays short on phones */
+  @media (max-width: 39.99rem) {
+    .pcard__media :global(.photo) {
+      aspect-ratio: 4 / 3 !important;
+    }
+  }
+  .pcard:hover :global(.photo--cutout img) {
+    transform: scale(1.05);
+  }
+  .pcard__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: clamp(1.25rem, 2vw, 1.6rem);
+  }
+  .pcard__meta {
+    margin: 0 0 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pcard__meta span {
+    margin-right: 0.6rem;
+    color: var(--terracotta-deep);
+  }
+  .pcard h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    font-size: clamp(1.6rem, 2.2vw, 1.9rem);
+    line-height: 1.1;
+  }
+  .pcard__summary {
+    margin: 0.75rem 0 1.5rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .pcard__more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: auto;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .pcard__arrow {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    transition:
+      background-color 0.35s var(--ease),
+      border-color 0.35s var(--ease),
+      color 0.35s var(--ease);
+  }
+  .pcard:hover .pcard__arrow {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--sand);
+  }
+
+  /* ── Why buyers talk to us ────────────────────────────────────────────── */
+  .why {
+    background:
+      radial-gradient(48rem 28rem at 100% 0%, rgba(167, 181, 154, 0.16), transparent 60%), var(--green);
+  }
+  .why__grid {
+    display: grid;
+    gap: clamp(2.5rem, 5vw, 3.5rem);
+  }
+  .why__intro .lede {
+    margin-top: 1.5rem;
+  }
+  @media (min-width: 54rem) {
+    .why__grid {
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+    .why__intro {
+      position: sticky;
+      top: 8rem;
+    }
+  }
+  .principle {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.25rem 1fr;
+    gap: 1rem;
+    padding-block: clamp(1.5rem, 3vw, 2.25rem);
+  }
+  /* Rule above each principle, drawn in as it scrolls into view */
+  .principle::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line-light);
+    transform-origin: left;
+    transition: transform 1.1s var(--ease) 0.15s;
+  }
+  :global(.js) .principle:not(.is-visible)::before {
+    transform: scaleX(0);
+  }
+  .principle__index {
+    padding-top: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--sand);
+  }
+  .principle h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    letter-spacing: -0.018em;
+    font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+    line-height: 1.15;
+  }
+  .principle p {
+    margin-top: 0.75rem;
+    max-width: 32em;
+    color: rgba(246, 242, 233, 0.76);
+  }
+
+  /* ── Story ────────────────────────────────────────────────────────────── */
+  .story-media {
+    position: relative;
+  }
+  .story-media :global(.photo) {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .story-badge {
+    position: absolute;
+    right: clamp(-1rem, -1.5vw, -0.5rem);
+    top: clamp(1.25rem, 4vw, 2.5rem);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.85rem 1.15rem;
+    background: var(--green);
+    color: rgba(246, 242, 233, 0.82);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    font-size: 0.82rem;
+    line-height: 1.35;
+    transition:
+      opacity 0.8s var(--ease) 0.5s,
+      transform 0.8s var(--ease) 0.5s;
+  }
+  :global(.js) .story-media:not(.is-visible) .story-badge {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  .story-badge :global(svg) {
+    flex: none;
+    color: var(--sand);
+  }
+  .story-badge strong {
+    display: block;
+    font-weight: 600;
+    font-size: 1.02rem;
+    color: var(--ivory);
+  }
+  .story-name {
+    margin: 2rem 0;
+    padding: 1.5rem clamp(1.25rem, 2.5vw, 1.75rem);
+    background: var(--ivory-deep);
+    border-left: 3px solid var(--terracotta);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  /* ── Process ──────────────────────────────────────────────────────────── */
+  .steps {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .steps li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.5rem 1fr;
+    gap: 1.25rem;
+  }
+  /* connector between the numbered markers, drawn in after its step appears */
+  .steps li::before {
+    content: '';
+    position: absolute;
+    left: 1.75rem;
+    top: 3.5rem;
+    bottom: -1.25rem;
+    border-left: 2px dashed rgba(23, 63, 53, 0.3);
+    transform-origin: left top;
+    transition: transform 0.9s var(--ease) 0.35s;
+  }
+  :global(.js) .steps li:not(.is-visible)::before {
+    transform: scale(0);
+  }
+  .steps li:last-child::before {
+    display: none;
+  }
+  .steps__number {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    background: var(--green);
+    color: var(--sand);
+    font-weight: 600;
+    font-size: 1.05rem;
+    box-shadow: 0 0 0 6px var(--ivory-deep);
+  }
+  .steps__card {
+    padding: clamp(1.25rem, 2.4vw, 1.75rem);
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform 0.4s var(--ease),
+      box-shadow 0.4s var(--ease);
+  }
+  .steps li:hover .steps__card {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+  .steps h3 {
+    font-size: 1.22rem;
+  }
+  .steps p {
+    margin-top: 0.6rem;
+    color: var(--muted);
+  }
+  @media (min-width: 64rem) {
+    .steps {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    .steps li {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-content: start;
+    }
+    .steps li::before {
+      left: 3.5rem;
+      right: -1.5rem;
+      top: 1.75rem;
+      bottom: auto;
+      border-left: 0;
+      border-top: 2px dashed rgba(23, 63, 53, 0.3);
+    }
+    .steps__card {
+      height: 100%;
+    }
+  }
+  .steps__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding: clamp(1.25rem, 2.5vw, 1.75rem) clamp(1.25rem, 3vw, 2.25rem);
+    background: var(--green);
+    color: var(--ivory);
+    border-radius: var(--radius-lg);
+  }
+  .steps__cta p {
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    font-size: clamp(1.1rem, 1.7vw, 1.3rem);
+    color: var(--ivory);
+  }
+</style>

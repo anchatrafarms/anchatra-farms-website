@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import Arrow from '../components/Arrow.astro';
+---
+
+<Base title="Page not found" description="The page you were looking for could not be found." noindex>
+  <section class="page-hero" style="min-height:55vh">
+    <div class="container">
+      <p class="eyebrow">Page not found</p>
+      <h1>This page has moved or does not exist.</h1>
+      <p class="lede">Try the product catalogue, or send us an enquiry and we will point you in the right direction.</p>
+      <div class="btn-row">
+        <a class="btn btn--green" href="/products/">Explore Our Products <Arrow /></a>
+        <a class="btn btn--ghost" href="/contact/#quote-form">Request a Quote</a>
+      </div>
+    </div>
+  </section>
+</Base>

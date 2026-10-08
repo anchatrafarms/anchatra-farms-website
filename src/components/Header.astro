@@ -1,0 +1,85 @@
+---
+import Wordmark from './Wordmark.astro';
+import Roller from './Roller.astro';
+import { site } from '../data/index.js';
+
+const { roller = 'onion' } = Astro.props;
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const isCurrent = (href) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <Wordmark />
+
+    <nav class="site-nav" id="site-nav" aria-label="Main">
+      <ul>
+        {
+          site.nav.map((item) => (
+            <li>
+              <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <a class="btn btn--primary site-nav__quote" href="/contact/#quote-form">Request a Quote</a>
+    </nav>
+
+    <div class="site-header__actions">
+      <a class="btn btn--primary" href="/contact/#quote-form">Request a Quote</a>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="visually-hidden">Menu</span>
+        <svg class="icon-open" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3 6.5h14M3 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+        <svg class="icon-close" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <span class="site-header__progress" aria-hidden="true"></span>
+  {/* On small screens the scroll onion rolls along the progress line instead of down the side */}
+  <span class="site-header__bead" data-roll-bead aria-hidden="true">
+    <span data-roll-spin><Roller kind={roller} size={26} /></span>
+  </span>
+</header>
+
+<script>
+  const header = document.querySelector('.site-header');
+  const toggle = document.querySelector('.menu-toggle');
+  const nav = document.getElementById('site-nav');
+
+  // Tighten the sticky header once the page has scrolled
+  if (header) {
+    const progress = header.querySelector('.site-header__progress');
+    const onScroll = () => {
+      header.classList.toggle('is-scrolled', window.scrollY > 48);
+      const range = document.documentElement.scrollHeight - window.innerHeight;
+      if (progress) progress.style.transform = `scaleX(${range > 0 ? Math.min(window.scrollY / range, 1) : 0})`;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  if (toggle && nav) {
+    const setOpen = (open) => {
+      nav.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // Close the mobile menu if the window grows to the desktop layout
+    window.matchMedia('(min-width: 64rem)').addEventListener('change', () => setOpen(false));
+  }
+</script>

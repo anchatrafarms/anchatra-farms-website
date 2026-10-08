@@ -1,0 +1,321 @@
+---
+import '@fontsource-variable/source-serif-4';
+import '@fontsource-variable/source-serif-4/wght-italic.css';
+import '@fontsource-variable/inter';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Arrow from '../components/Arrow.astro';
+import Roller from '../components/Roller.astro';
+import { site, getImage, whatsappHref } from '../data/index.js';
+
+const { title, description = site.description, image = 'black-garlic-bulbs.jpg', noindex = false, roller = 'onion' } = Astro.props;
+
+const fullTitle = title ? `${title} | ${site.name}` : `${site.name} — ${site.tagline}`;
+const whatsapp = whatsappHref();
+const showFab = !Astro.url.pathname.startsWith('/contact');
+const canonical = site.url ? new URL(Astro.url.pathname, site.url).href : undefined;
+const socialImage = site.url ? new URL(getImage(image).src, site.url).href : undefined;
+
+// Structured data uses confirmed information only.
+const organisation = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  description: site.description,
+  ...(site.url && { url: site.url }),
+  address: {
+    '@type': 'PostalAddress',
+    ...(site.location.streetAddress && { streetAddress: site.location.streetAddress }),
+    addressLocality: site.location.town,
+    addressRegion: site.location.state,
+    addressCountry: 'IN',
+  },
+  ...(site.contact.email && { email: site.contact.email }),
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <meta name="theme-color" content="#173F35" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {socialImage && <meta property="og:image" content={socialImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {/* Marks the page as scripted so scroll-reveal styles only apply when they can be undone */}
+    <script is:inline>
+      document.documentElement.classList.add('js');
+    </script>
+    <script type="application/ld+json" set:html={JSON.stringify(organisation)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header roller={roller} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+    {
+      showFab && (
+        <a class="fab" href={whatsapp || '/contact/#quote-form'} target={whatsapp ? '_blank' : undefined} rel={whatsapp ? 'noopener' : undefined}>
+          {whatsapp ? 'Enquire on WhatsApp' : 'Request a Quote'} <Arrow />
+        </a>
+      )
+    }
+    {/* Scroll marker: a produce character that rolls down a rail as the page scrolls (wide screens).
+        Pages can pick the character with the `roller` prop: onion, tomato, garlic or moringa. */}
+    <div class="roll is-top" data-roll data-kind={roller}>
+      <span class="roll__rail" aria-hidden="true"><span class="roll__fill" data-roll-fill></span></span>
+      <button type="button" class="roll__ball" data-roll-ball aria-label="Scroll to the next section">
+        <span class="roll__bob">
+          <span class="roll__squash" data-roll-squash>
+            <span class="roll__spin" data-roll-spin><Roller kind={roller} size={44} /></span>
+          </span>
+        </span>
+        <span class="roll__hint" aria-hidden="true">Scroll</span>
+      </button>
+    </div>
+    <script is:inline>
+      (function () {
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // Page headlines rise word by word, each from behind its own edge
+        document.querySelectorAll('.page-hero h1, [data-split]').forEach(function (heading) {
+          var count = 0;
+          (function walk(node) {
+            Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+              if (child.nodeType === 1) return walk(child);
+              if (child.nodeType !== 3) return;
+              var fragment = document.createDocumentFragment();
+              child.textContent.split(/(\s+)/).forEach(function (part) {
+                if (!part) return;
+                if (/^\s+$/.test(part)) return fragment.appendChild(document.createTextNode(' '));
+                var word = document.createElement('span');
+                var inner = document.createElement('span');
+                word.className = 'word';
+                inner.style.setProperty('--i', count++);
+                inner.textContent = part;
+                word.appendChild(inner);
+                fragment.appendChild(word);
+              });
+              node.replaceChild(fragment, child);
+            });
+          })(heading);
+          heading.classList.add('is-split');
+        });
+
+        // Rolling marker. Its place on the rail follows the scroll position on a spring, so it overshoots
+        // and settles. It turns while the page moves and stretches with its speed; when scrolling stops it
+        // rocks back upright and opens its eyes. Fast rolling sheds a few flakes of skin behind it.
+        var roll = document.querySelector('[data-roll]');
+        var ball = document.querySelector('[data-roll-ball]');
+        var bob = document.querySelector('.roll__bob');
+        var squash = document.querySelector('[data-roll-squash]');
+        var fill = document.querySelector('[data-roll-fill]');
+        var bead = document.querySelector('[data-roll-bead]');
+        var spins = document.querySelectorAll('[data-roll-spin]');
+        var header = document.querySelector('.site-header');
+        var heroBg = document.querySelector('.hero__bg');
+        var pageHero = document.querySelector('.page-hero');
+        var TURN = Math.PI * 2;
+        var place = 0;
+        var placeSpeed = 0;
+        var angle = 0;
+        var speed = 0;
+        var spinTarget = 0;
+        var lastY = window.scrollY;
+        var lastMove = 0;
+        var lastFlake = 0;
+        var wasActive = false;
+        var looping = false;
+
+        var railLength = function () {
+          return roll && ball ? Math.max(roll.clientHeight - ball.offsetHeight, 0) : 0;
+        };
+
+        var draw = function (stretch) {
+          var beadLength = bead && header ? Math.max(header.clientWidth - bead.offsetWidth, 0) : 0;
+          var clamped = Math.max(0, Math.min(place, 1));
+          if (ball) ball.style.transform = 'translate3d(0,' + place * railLength() + 'px,0)';
+          if (fill) fill.style.transform = 'scaleY(' + clamped + ')';
+          if (bead) bead.style.transform = 'translate3d(' + clamped * beadLength + 'px,0,0)';
+          if (squash) squash.style.transform = 'scale(' + (1 - stretch * 0.6) + ',' + (1 + stretch) + ')';
+          spins.forEach(function (spin) {
+            spin.style.transform = 'rotate(' + angle + 'rad)';
+          });
+        };
+
+        var shed = function (top, goingDown) {
+          var flake = document.createElement('span');
+          flake.className = 'roll__flake';
+          flake.style.top = top + 'px';
+          flake.style.setProperty('--dx', Math.random() * 40 - 32 + 'px');
+          flake.style.setProperty('--dy', (goingDown ? -1 : 1) * (16 + Math.random() * 28) + 'px');
+          flake.style.setProperty('--turn', Math.random() * 260 - 130 + 'deg');
+          flake.addEventListener('animationend', function () {
+            flake.remove();
+          });
+          roll.appendChild(flake);
+        };
+
+        var step = function (now) {
+          var moved = window.scrollY - lastY;
+          var range = document.documentElement.scrollHeight - window.innerHeight;
+          var targetPlace = range > 0 ? Math.min(window.scrollY / range, 1) : 0;
+          var active = now - lastMove < 170;
+          lastY = window.scrollY;
+
+          if (reduceMotion) {
+            place = targetPlace;
+            looping = false;
+            return draw(0);
+          }
+
+          if (active) spinTarget += moved / 62;
+          else if (wasActive) spinTarget = Math.round(spinTarget / TURN) * TURN; // come to rest the right way up
+          if (active !== wasActive) {
+            spins.forEach(function (spin) {
+              spin.classList.toggle('is-rolling', active);
+            });
+          }
+          wasActive = active;
+
+          placeSpeed = (placeSpeed + (targetPlace - place) * 0.1) * 0.74;
+          place += placeSpeed;
+          speed = (speed + (spinTarget - angle) * 0.08) * 0.8;
+          angle += speed;
+
+          var length = railLength();
+          draw(Math.min((Math.abs(placeSpeed) * length) / 30, 0.2));
+
+          if (active && length && Math.abs(moved) > 5 && now - lastFlake > 110) {
+            lastFlake = now;
+            shed(place * length + ball.offsetHeight / 2, moved > 0);
+          }
+
+          var settled =
+            Math.abs(targetPlace - place) < 0.0004 &&
+            Math.abs(placeSpeed) < 0.0003 &&
+            Math.abs(speed) < 0.0008 &&
+            Math.abs(spinTarget - angle) < 0.003;
+          if (!active && settled) {
+            place = targetPlace;
+            angle = spinTarget;
+            looping = false;
+            return draw(0);
+          }
+          requestAnimationFrame(step);
+        };
+
+        var onMove = function () {
+          lastMove = performance.now();
+          if (roll) roll.classList.toggle('is-top', window.scrollY < 40);
+          // The hero photograph and the page-hero shapes move a little slower than the page
+          if (!reduceMotion && window.scrollY < window.innerHeight * 1.3) {
+            if (heroBg) heroBg.style.transform = 'translate3d(0,' + window.scrollY * 0.22 + 'px,0)';
+            if (pageHero) pageHero.style.setProperty('--sy', window.scrollY + 'px');
+          }
+          if (!looping) {
+            looping = true;
+            requestAnimationFrame(step);
+          }
+        };
+        window.addEventListener('scroll', onMove, { passive: true });
+        window.addEventListener('resize', onMove);
+        onMove();
+        lastMove = 0; // placing it on load is not a roll, so it starts with its eyes open
+
+        // At rest, the character's eyes follow the pointer
+        if (roll && ball && !reduceMotion) {
+          window.addEventListener(
+            'pointermove',
+            function (event) {
+              if (!roll.clientHeight) return;
+              var box = ball.getBoundingClientRect();
+              var dx = event.clientX - (box.left + box.width / 2);
+              var dy = event.clientY - (box.top + box.height / 2);
+              var distance = Math.sqrt(dx * dx + dy * dy) || 1;
+              roll.style.setProperty('--px', ((dx / distance) * 1.7).toFixed(2));
+              roll.style.setProperty('--py', ((dy / distance) * 1.7).toFixed(2));
+            },
+            { passive: true },
+          );
+        }
+
+        // Clicking it makes it hop, then rolls on to the next section (or back to the top from the end)
+        if (ball) {
+          if (bob) {
+            bob.addEventListener('animationend', function () {
+              bob.classList.remove('is-hop');
+            });
+          }
+          ball.addEventListener('click', function () {
+            if (bob && !reduceMotion) bob.classList.add('is-hop');
+            var offset = header ? header.offsetHeight : 0;
+            var sections = document.querySelectorAll('main > section, .site-footer');
+            var top = 0;
+            for (var i = 0; i < sections.length; i++) {
+              var edge = sections[i].getBoundingClientRect().top;
+              if (edge > offset + 24) {
+                top = window.scrollY + edge - offset + 1;
+                break;
+              }
+            }
+            var atEnd = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 8;
+            window.scrollTo({ top: atEnd ? 0 : top, behavior: reduceMotion ? 'auto' : 'smooth' });
+          });
+        }
+        var items = document.querySelectorAll('[data-reveal]');
+        var show = function (el) {
+          el.classList.add('is-visible');
+        };
+        if (!('IntersectionObserver' in window)) {
+          items.forEach(show);
+        } else {
+          var observer = new IntersectionObserver(
+            function (entries) {
+              var index = 0;
+              entries.forEach(function (entry) {
+                if (!entry.isIntersecting) return;
+                var el = entry.target;
+                el.style.transitionDelay = Math.min(index++, 6) * 80 + 'ms';
+                show(el);
+                observer.unobserve(el);
+                setTimeout(function () {
+                  el.style.transitionDelay = '';
+                }, 1200);
+              });
+            },
+            { rootMargin: '0px 0px -8% 0px', threshold: 0.08 },
+          );
+          items.forEach(function (el) {
+            observer.observe(el);
+          });
+        }
+
+        var fab = document.querySelector('.fab');
+        if (fab) {
+          var onScroll = function () {
+            var nearEnd = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 320;
+            fab.classList.toggle('is-shown', window.scrollY > 640 && !nearEnd);
+          };
+          window.addEventListener('scroll', onScroll, { passive: true });
+          onScroll();
+        }
+      })();
+    </script>
+  </body>
+</html>

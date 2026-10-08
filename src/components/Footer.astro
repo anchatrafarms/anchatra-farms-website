@@ -1,0 +1,55 @@
+---
+import Wordmark from './Wordmark.astro';
+import { site, categories, whatsappHref } from '../data/index.js';
+
+const { location, contact } = site;
+const whatsapp = whatsappHref();
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="site-footer__grid">
+      <div data-reveal>
+        <Wordmark tone="light" />
+        <p class="site-footer__tagline">{site.tagline}</p>
+      </div>
+
+      <nav aria-label="Footer" data-reveal>
+        <h2>Explore</h2>
+        <ul>
+          {site.nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ul>
+      </nav>
+
+      <div data-reveal>
+        <h2>Products</h2>
+        <ul>
+          {categories.map((category) => <li><a href={`/products/?category=${category.slug}`}>{category.shortName}</a></li>)}
+          <li><a href="/products/">All products</a></li>
+        </ul>
+      </div>
+
+      <div data-reveal>
+        <h2>Location &amp; enquiries</h2>
+        <address>
+          {location.streetAddress && <>{location.streetAddress}<br /></>}
+          {location.town}, {location.district}<br />
+          {location.state}, {location.country}
+        </address>
+        <ul style="margin-top:1rem">
+          {contact.email && <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
+          {contact.phone && <li><a href={`tel:${contact.phone.replace(/[^\d+]/g, '')}`}>{contact.phone}</a></li>}
+          {whatsapp && <li><a href={whatsapp} target="_blank" rel="noopener">WhatsApp enquiry</a></li>}
+          <li><a href="/contact/#quote-form">Request a quotation</a></li>
+          {contact.social.map((profile) => <li><a href={profile.url} target="_blank" rel="noopener">{profile.label}</a></li>)}
+        </ul>
+      </div>
+    </div>
+
+    <div class="site-footer__base">
+      <span>© {year} {site.name}. All rights reserved.</span>
+      <a href="#main">Back to top ↑</a>
+    </div>
+  </div>
+</footer>

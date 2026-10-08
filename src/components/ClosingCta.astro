@@ -1,0 +1,32 @@
+---
+import Photo from './Photo.astro';
+import Arrow from './Arrow.astro';
+import Roller from './Roller.astro';
+
+const {
+  heading = 'Let’s discuss what your market needs.',
+  text = 'Tell us the product, quantity and destination you have in mind. We will reply to discuss specifications, availability and terms.',
+  href = '/contact/#quote-form',
+  label = 'Request a Quote',
+} = Astro.props;
+---
+
+<section class="section cta on-dark" aria-labelledby="cta-heading">
+  <div class="container cta__grid">
+    <div data-reveal>
+      <p class="eyebrow">Start a buying conversation</p>
+      <h2 id="cta-heading">{heading}</h2>
+      <p class="lede">{text}</p>
+      <div class="btn-row">
+        <a class="btn btn--sand" href={href}>{label} <Arrow /></a>
+        <a class="btn btn--ghost" href="/products/">View our products</a>
+      </div>
+    </div>
+    <div class="cta__art">
+      <Photo file="moringa-leaf-light.jpg" alt="" sizes="22rem" />
+      <span class="cta__friend cta__friend--tomato"><Roller kind="tomato" size={64} /></span>
+      <span class="cta__friend cta__friend--garlic"><Roller kind="garlic" size={54} /></span>
+      <span class="cta__friend cta__friend--onion"><Roller kind="onion" size={46} /></span>
+    </div>
+  </div>
+</section>

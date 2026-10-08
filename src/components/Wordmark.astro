@@ -1,0 +1,23 @@
+---
+// Typographic wordmark. Replace with an image logo by setting logo.image in src/data/site.js.
+import { site } from '../data/index.js';
+
+const { tone = 'dark' } = Astro.props;
+const { logo } = site;
+const image = tone === 'light' ? logo.imageOnDark || logo.image : logo.image;
+---
+
+<a class:list={['wordmark', tone === 'light' && 'wordmark--light']} href="/" aria-label={`${site.name} — home`}>
+  {
+    image ? (
+      <img src={image} alt={site.name} />
+    ) : (
+      <>
+        <span class="wordmark__primary" aria-hidden="true">{logo.primary}</span>
+        <span class="wordmark__secondary" aria-hidden="true">
+          <span>{logo.secondary}</span>
+        </span>
+      </>
+    )
+  }
+</a>

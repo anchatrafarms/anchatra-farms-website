@@ -1,4 +1,4 @@
-// Shared pieces for the site's line drawings (Journey, HeroArt).
+// Shared pieces for the site's line drawings (Journey).
 
 export const round = (n) => Math.round(n * 10) / 10;
 

@@ -8,7 +8,7 @@ export const site = {
   name: 'ANCHATRA FARMS',
   tagline: 'Rooted in Oddanchatram. Growing global connections.',
   description:
-    'ANCHATRA FARMS is an emerging agricultural sourcing and export business from Oddanchatram, Tamil Nadu, offering black garlic, moringa powder and fresh produce to international trade buyers.',
+    'ANCHATRA FARMS is an emerging agricultural sourcing and export business from Oddanchatram, Tamil Nadu, offering black garlic, moringa powder, green cardamom, black pepper and fresh produce to international trade buyers.',
 
   // Your live web address, e.g. 'https://www.anchatrafarms.com' (no trailing slash).
   // Used for canonical links and social sharing. Leave empty until you have a domain.

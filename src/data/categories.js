@@ -14,6 +14,12 @@ export const categories = [
       'Our main commercial focus: value-added agricultural ingredients for importers, food brands and ingredient buyers.',
   },
   {
+    slug: 'spices',
+    name: 'Spices',
+    shortName: 'Spices',
+    description: 'Whole spices from South India, beginning with green cardamom and black pepper.',
+  },
+  {
     slug: 'fresh-produce',
     name: 'Fresh Produce',
     shortName: 'Fresh Produce',

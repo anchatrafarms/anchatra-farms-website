@@ -29,8 +29,6 @@ const details = [
 ].filter((row) => row.value);
 
 const documents = (product.documents ?? []).filter((doc) => doc.file);
-// The scroll marker on each product page is that product
-const rollers = { onions: 'onion', tomatoes: 'tomato', 'black-garlic': 'garlic', 'moringa-powder': 'moringa' };
 const related = products.filter((other) => other.slug !== product.slug).slice(0, 2);
 ---
 
@@ -38,7 +36,6 @@ const related = products.filter((other) => other.slug !== product.slug).slice(0,
   title={`${product.name} — ${category?.name}`}
   description={`${product.name} from ANCHATRA FARMS, Oddanchatram, Tamil Nadu. ${product.summary} Request a quotation.`}
   image={mainImage.file}
-  roller={rollers[product.slug]}
 >
   <section class="product">
     <div class="container">

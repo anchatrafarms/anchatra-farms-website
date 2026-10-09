@@ -3,7 +3,6 @@ import Base from '../layouts/Base.astro';
 import Photo from '../components/Photo.astro';
 import Icon from '../components/Icon.astro';
 import ClosingCta from '../components/ClosingCta.astro';
-import HeroArt from '../components/HeroArt.astro';
 import { documents } from '../data/documents.js';
 
 const stages = [
@@ -36,7 +35,6 @@ const stages = [
   image="onions-market.jpg"
 >
   <section class="page-hero">
-    <HeroArt kind="sourcing" />
     <div class="container">
       <p class="eyebrow">Sourcing &amp; quality</p>
       <h1>Agreed clearly, before anything ships.</h1>
@@ -49,7 +47,7 @@ const stages = [
 
   <section class="section on-dark" aria-labelledby="relationships-heading">
     <div class="container split split--flip">
-      <div class="split__media" data-reveal="wipe">
+      <div class="split__media" data-reveal="wipe" data-parallax>
         <Photo file="onions-market.jpg" alt="A basket of onions beside green beans at a vegetable market stall" ratio="5 / 4" />
       </div>
       <div class="split__body" data-reveal="left">

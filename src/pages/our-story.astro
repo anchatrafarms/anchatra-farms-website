@@ -5,7 +5,6 @@ import Arrow from '../components/Arrow.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import NameReveal from '../components/NameReveal.astro';
 import Globe from '../components/Globe.astro';
-import HeroArt from '../components/HeroArt.astro';
 import { site } from '../data/index.js';
 ---
 
@@ -15,7 +14,6 @@ import { site } from '../data/index.js';
   image="market-stall.jpg"
 >
   <section class="page-hero">
-    <HeroArt kind="story" />
     <div class="container">
       <p class="eyebrow">Our story</p>
       <h1>We carry our hometown <em>in our name.</em></h1>
@@ -32,7 +30,7 @@ import { site } from '../data/index.js';
   <!-- Founder + market relationships -->
   <section class="section" aria-labelledby="roots-heading">
     <div class="container split">
-      <div class="split__media story-photo" data-reveal="wipe">
+      <div class="split__media story-photo" data-reveal="wipe" data-parallax>
         <Photo file={site.locationImage.file} alt={site.locationImage.alt} ratio="4 / 5" />
         {site.locationImage.caption && <p class="photo-caption">{site.locationImage.caption}</p>}
       </div>
@@ -67,8 +65,8 @@ import { site } from '../data/index.js';
           <h2 id="offer-heading">Fresh produce and processed products, side by side.</h2>
         </div>
         <p class="lede">
-          Our focus brings together processed agricultural products such as black garlic and moringa powder with fresh
-          produce, including onions and tomatoes.
+          Our focus brings together processed agricultural products such as black garlic and moringa powder with whole
+          spices — green cardamom and black pepper — and fresh produce, including onions and tomatoes.
         </p>
       </div>
 

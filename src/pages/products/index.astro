@@ -2,22 +2,20 @@
 import Base from '../../layouts/Base.astro';
 import ProductTile from '../../components/ProductTile.astro';
 import ClosingCta from '../../components/ClosingCta.astro';
-import HeroArt from '../../components/HeroArt.astro';
 import Arrow from '../../components/Arrow.astro';
 import { categories, products } from '../../data/index.js';
 ---
 
 <Base
   title="Our Products"
-  description="Browse the ANCHATRA FARMS catalogue: black garlic and moringa powder, plus fresh produce beginning with onions and tomatoes. Request a quotation for any product."
+  description="Browse the ANCHATRA FARMS catalogue: black garlic and moringa powder, green cardamom and black pepper, plus fresh produce beginning with onions and tomatoes. Request a quotation for any product."
 >
   <section class="page-hero">
-    <HeroArt kind="products" />
     <div class="container">
       <p class="eyebrow">Our products</p>
       <h1>A small catalogue, chosen with care.</h1>
       <p class="lede">
-        Processed agricultural products are our main focus, supported by fresh produce sourced through our market
+        Processed agricultural products are our main focus, joined by whole spices and supported by fresh produce sourced through our market
         relationships in Oddanchatram. Specifications, packaging and availability are confirmed for each enquiry.
       </p>
     </div>
@@ -38,7 +36,7 @@ import { categories, products } from '../../data/index.js';
 
       <p class="visually-hidden" id="filter-status" role="status" aria-live="polite"></p>
 
-      <div class="product-grid" id="product-grid">
+      <div class="product-grid" id="product-grid" data-stagger>
         {products.map((product) => <ProductTile product={product} />)}
       </div>
 
@@ -64,7 +62,10 @@ import { categories, products } from '../../data/index.js';
 </Base>
 
 <script>
+  import { animate, stagger } from 'motion';
+
   const buttons = document.querySelectorAll('[data-filter]');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tiles = document.querySelectorAll('#product-grid .product-tile');
   const grid = document.getElementById('product-grid');
   const empty = document.getElementById('empty-state');
@@ -90,6 +91,12 @@ import { categories, products } from '../../data/index.js';
     grid.hidden = visible === 0;
     empty.hidden = visible !== 0;
     status.textContent = visible === 1 ? '1 product shown' : `${visible} products shown`;
+
+    // A new selection springs into place, as the grid did when it first came into view
+    if (updateUrl && !reduceMotion && visible) {
+      const shown = [...tiles].filter((tile) => !tile.hidden);
+      animate(shown, { opacity: [0, 1], y: [24, 0] }, { delay: stagger(0.06), type: 'spring', bounce: 0.15, duration: 0.7 });
+    }
 
     if (updateUrl) {
       const url = new URL(window.location.href);

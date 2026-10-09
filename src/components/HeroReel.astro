@@ -1,0 +1,968 @@
+---
+// Homepage hero: a rendered animation in which garlic, cardamom, black pepper and moringa are
+// gathered into a jute spiral, scrubbed by the scroll and set in the centre of the screen, with the
+// story told on either side of it. Frames live in public/reel/ (lg for wide screens; sm — every
+// other frame, smaller — for phones) and are drawn onto a canvas.
+// Without JavaScript, or with reduced motion, it is a still of the finished tower beside the text.
+import { readdirSync } from 'node:fs';
+import Photo from './Photo.astro';
+import Arrow from './Arrow.astro';
+import { getProduct, productHref, enquiryHref } from '../data/index.js';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const count = (dir) => readdirSync(`public/reel/${dir}`).filter((file) => file.endsWith('.webp')).length;
+
+// One scene per product, in the order they sit in the tower (top to bottom).
+// `at` is the point in the scroll (0–1) where the scene takes over; `glow` tints the light behind the tower.
+const scenes = [
+  {
+    name: 'Garlic',
+    at: 0.14,
+    glow: '#e2c9cc',
+    text: 'Plump bulbs with firm, pale cloves. Fresh garlic is also where our black garlic begins — aged under gentle, steady warmth until the cloves turn dark, soft and mellow.',
+    product: getProduct('black-garlic'),
+    linkLabel: 'View black garlic',
+  },
+  {
+    name: 'Cardamom',
+    local: 'Elachi',
+    at: 0.32,
+    glow: '#a9c477',
+    text: 'Whole green pods holding small, fragrant seeds, with the sweet, warm aroma that South Indian sweets, tea and rice dishes are known for.',
+    product: getProduct('green-cardamom'),
+  },
+  {
+    name: 'Black Pepper',
+    at: 0.5,
+    glow: '#9a7558',
+    text: 'The dried berries of the pepper vine. Whole peppercorns keep their sharp, warming heat until they are cracked or ground.',
+    product: getProduct('black-pepper'),
+  },
+  {
+    name: 'Moringa',
+    at: 0.68,
+    glow: '#7fb35e',
+    text: 'A familiar tree across South India. Its leaves, dried and milled, become the fine green powder we offer to food and ingredient businesses.',
+    product: getProduct('moringa-powder'),
+    linkLabel: 'View moringa powder',
+  },
+].filter((scene) => scene.product);
+
+const outroAt = 0.86;
+const two = (n) => String(n).padStart(2, '0');
+---
+
+<section
+  class="reel on-dark"
+  aria-labelledby="reel-heading"
+  data-reel
+  data-header-over
+  data-lg={`${base}/reel/lg/`}
+  data-lg-count={count('lg')}
+  data-sm={`${base}/reel/sm/`}
+  data-sm-count={count('sm')}
+  data-stops={JSON.stringify(scenes.map((scene) => scene.at).concat(outroAt))}
+>
+  <a class="reel__skip" href="#overview">Skip the product animation</a>
+
+  <div class="reel__stage">
+    <div class="reel__glow" aria-hidden="true"></div>
+
+    <div
+      class="reel__media"
+      role="img"
+      aria-label="Garlic, green cardamom, black pepper and moringa gathered into a jute spiral (computer-generated image)"
+    >
+      <div class="reel__still">
+        <Photo file="product-tower.jpg" alt="" ratio="9 / 16" eager sizes="(min-width: 54rem) 30rem, 100vw" />
+      </div>
+      <img class="reel__poster" src={`${base}/reel/lg/000.webp`} alt="" width="720" height="1280" fetchpriority="high" />
+      <canvas class="reel__canvas" data-reel-canvas></canvas>
+    </div>
+
+    <div class="reel__copy">
+      <ol class="reel__captions">
+        <li class="reel__caption reel__caption--intro is-active" data-reel-caption>
+          <div class="reel__left">
+            <p class="eyebrow">Sourcing &amp; export · Tamil Nadu</p>
+            <h1 id="reel-heading">
+              <span class="reel__line"><span>Rooted in</span></span>
+              <span class="reel__line"><em>Oddanchatram.</em></span>
+            </h1>
+          </div>
+          <div class="reel__right">
+            <p class="reel__lede">
+              Garlic, green cardamom, black pepper and moringa from ANCHATRA FARMS — an emerging export business shaped
+              by local market relationships in Tamil Nadu.
+            </p>
+            <div class="btn-row">
+              <a class="btn btn--sand" href="/products/">Explore Our Products <Arrow /></a>
+              <a class="btn btn--ghost" href="/contact/#quote-form">Request a Quote</a>
+            </div>
+            <p class="reel__hint" aria-hidden="true"><span></span>Scroll to see the range</p>
+          </div>
+        </li>
+        {
+          scenes.map((scene, index) => (
+            <li class="reel__caption" data-reel-caption>
+              <div class="reel__left">
+                <p class="reel__num">
+                  <span>{two(index + 1)}</span> / {two(scenes.length)}
+                </p>
+                <h2>
+                  {scene.name}
+                  {scene.local && <em class="reel__local">{scene.local}</em>}
+                </h2>
+              </div>
+              <div class="reel__right">
+                <p class="reel__text">{scene.text}</p>
+                <ul class="reel__uses" aria-label="Used in">
+                  {scene.product.uses.slice(0, 3).map((use) => (
+                    <li>{use}</li>
+                  ))}
+                </ul>
+                <div class="reel__links">
+                  <a class="arrow-link" href={productHref(scene.product)}>
+                    {scene.linkLabel ?? `View ${scene.product.name.toLowerCase()}`} <Arrow />
+                  </a>
+                  <a class="arrow-link" href={enquiryHref(scene.product)}>
+                    Request a quote <Arrow />
+                  </a>
+                </div>
+              </div>
+            </li>
+          ))
+        }
+        <li class="reel__caption reel__caption--outro" data-reel-caption>
+          <div class="reel__left">
+            <p class="eyebrow">One enquiry, the whole range</p>
+            <h2>Tell us what your market <em>needs.</em></h2>
+          </div>
+          <div class="reel__right">
+            <p class="reel__text">
+              Share the products, quantities and destination you have in mind. We will come back with what we can offer,
+              in writing.
+            </p>
+            <div class="btn-row">
+              <a class="btn btn--sand" href="/contact/#quote-form">Request a Quote <Arrow /></a>
+              <a class="btn btn--ghost" href="/products/">View all products</a>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <ol class="reel__tabs" aria-label="Products in this animation">
+      {
+        scenes.map((scene, index) => (
+          <li>
+            <button type="button" class="reel__tab" data-reel-tab data-glow={scene.glow}>
+              <span class="reel__tab-bar" aria-hidden="true">
+                <span />
+              </span>
+              <span class="visually-hidden">Show </span>
+              {scene.name}
+              <span class="visually-hidden">
+                , product {index + 1} of {scenes.length}
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="reel__progress" aria-hidden="true"><span></span></div>
+  </div>
+</section>
+
+<!-- Curved lower edge into the page: a sand wave behind, a drawn line, and the page colour in front -->
+<div class="reel-edge" aria-hidden="true">
+  <svg class="reel-edge__back" viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path d="M0 62c220 56 470 50 720 8s500-48 720-6v56H0Z"></path>
+  </svg>
+  <svg class="reel-edge__line" viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path d="M0 46c240 58 480 50 720 10s500-48 720-8" vector-effect="non-scaling-stroke"></path>
+  </svg>
+  <svg class="reel-edge__front" viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <path d="M0 80c260 46 500 38 760 4s480-38 680-2v38H0Z"></path>
+  </svg>
+</div>
+
+<script>
+  // One number drives the hero: how far it has been scrolled (0–1). The script eases towards it,
+  // draws the matching frame and switches the caption. Frames load progressively — every 16th
+  // first, then the gaps — and the nearest loaded frame stands in until the exact one arrives.
+  const section = document.querySelector<HTMLElement>('[data-reel]');
+  const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)');
+  const canvas = section?.querySelector<HTMLCanvasElement>('[data-reel-canvas]');
+  const context = canvas?.getContext('2d');
+
+  if (section && canvas && context && motionOk.matches) {
+    section.classList.add('is-live');
+    const narrow = window.matchMedia('(max-width: 53.99rem)').matches;
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    const small = narrow || saveData;
+    const folder = small ? section.dataset.sm! : section.dataset.lg!;
+    const total = Number(small ? section.dataset.smCount : section.dataset.lgCount);
+    const frames: (HTMLImageElement | undefined)[] = new Array(total);
+
+    const captions = [...section.querySelectorAll<HTMLElement>('[data-reel-caption]')];
+    const tabs = [...section.querySelectorAll<HTMLElement>('[data-reel-tab]')];
+    const stops: number[] = JSON.parse(section.dataset.stops || '[]');
+    const clamp = (n: number) => Math.max(0, Math.min(n, 1));
+
+    // The animation plays across most of the scroll and holds its last frame for the closing caption
+    const playEnd = stops[stops.length - 1];
+    const frameAt = (p: number) => Math.round(clamp(p / playEnd) * (total - 1));
+
+    let target = 0;
+    let shown = 0;
+    let looping = false;
+    let drawn = -1;
+    let active = -1;
+    let size = '';
+
+    const travel = () => section.offsetHeight - window.innerHeight;
+    const measure = () => clamp(-section.getBoundingClientRect().top / travel());
+
+    // ── Drawing ──
+    const fit = () => {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const next = `${canvas.clientWidth}x${canvas.clientHeight}x${ratio}`;
+      if (next === size) return; // phones fire resize as the address bar slides; skip if nothing changed
+      size = next;
+      canvas.width = Math.round(canvas.clientWidth * ratio);
+      canvas.height = Math.round(canvas.clientHeight * ratio);
+      // Resizing resets the context; ask for the sharpest scaling the browser offers
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      drawn = -1;
+    };
+
+    const nearest = (index: number) => {
+      for (let d = 0; d < total; d++) {
+        if (frames[index - d]) return index - d;
+        if (frames[index + d]) return index + d;
+      }
+      return -1;
+    };
+
+    const draw = (wanted: number) => {
+      const index = nearest(wanted);
+      if (index < 0 || index === drawn) return;
+      const image = frames[index]!;
+      // Cover the canvas, keeping the middle of the frame
+      const scale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+      const w = image.naturalWidth * scale;
+      const h = image.naturalHeight * scale;
+      context.drawImage(image, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+      drawn = index;
+      section.classList.add('has-frame');
+    };
+
+    // ── Captions and tabs ──
+    const sceneAt = (p: number) => {
+      let index = 0;
+      stops.forEach((stop, i) => {
+        if (p >= stop) index = i + 1;
+      });
+      return index; // 0 = intro, 1…n = products, n + 1 = closing caption
+    };
+
+    const render = () => {
+      section.style.setProperty('--p', shown.toFixed(4));
+      draw(frameAt(shown));
+
+      const index = sceneAt(shown);
+      if (index !== active) {
+        active = index;
+        captions.forEach((caption, i) => caption.classList.toggle('is-active', i === index));
+        tabs.forEach((tab, i) => {
+          if (i === index - 1) tab.setAttribute('aria-current', 'step');
+          else tab.removeAttribute('aria-current');
+        });
+        const glow = tabs[Math.min(Math.max(index - 1, 0), tabs.length - 1)]?.dataset.glow;
+        if (glow) section.style.setProperty('--glow', glow);
+      }
+    };
+
+    // Ease towards the scroll position so frames glide instead of ticking with the wheel
+    const step = () => {
+      shown += (target - shown) * 0.16;
+      if (Math.abs(target - shown) < 0.0003) {
+        shown = target;
+        looping = false;
+      } else {
+        requestAnimationFrame(step);
+      }
+      render();
+    };
+
+    const onMove = () => {
+      target = measure();
+      if (!looping) {
+        looping = true;
+        requestAnimationFrame(step);
+      }
+    };
+
+    // ── Loading: coarse frames first so any scroll position has something close, then the gaps ──
+    const order: number[] = [];
+    const queued = new Set<number>();
+    for (let stride = 16; stride >= 1; stride /= 2) {
+      for (let i = 0; i < total; i += stride) {
+        if (!queued.has(i)) {
+          queued.add(i);
+          order.push(i);
+        }
+      }
+    }
+    let next = 0;
+    const pump = () => {
+      if (next >= order.length) return;
+      const index = order[next++];
+      const image = new Image();
+      image.decoding = 'async';
+      image.src = `${folder}${String(index).padStart(3, '0')}.webp`;
+      image
+        .decode()
+        .then(() => {
+          frames[index] = image;
+          // A closer frame than the one on screen has arrived
+          const wanted = frameAt(shown);
+          if (drawn < 0 || Math.abs(index - wanted) < Math.abs(drawn - wanted)) {
+            drawn = -1;
+            draw(wanted);
+          }
+        })
+        .catch(() => {})
+        .finally(pump);
+    };
+    for (let i = 0; i < 6; i++) pump();
+
+    // Only follow the scroll while the hero is on screen
+    let visible = true;
+    new IntersectionObserver((entries) => {
+      visible = entries.some((entry) => entry.isIntersecting);
+      if (visible) onMove();
+    }).observe(section);
+
+    tabs.forEach((tab, i) =>
+      tab.addEventListener('click', () => {
+        const top = section.getBoundingClientRect().top + window.scrollY;
+        const middle = (stops[i] + stops[i + 1]) / 2;
+        window.scrollTo({ top: top + middle * travel(), behavior: 'smooth' });
+      }),
+    );
+
+    window.addEventListener('scroll', () => visible && onMove(), { passive: true });
+    window.addEventListener('resize', () => {
+      fit();
+      onMove();
+      render();
+    });
+
+    fit();
+    shown = target = measure(); // no glide on load: start wherever the page already is
+    render();
+  }
+</script>
+
+<style>
+  .reel {
+    --p: 0;
+    --glow: #e2c9cc;
+    --head: 5rem; /* room for the see-through header */
+    position: relative;
+    background: var(--earth);
+    color: var(--ivory);
+  }
+
+  /* Keyboard users can jump past the long pinned hero */
+  .reel__skip {
+    position: absolute;
+    left: var(--gutter);
+    top: calc(var(--head) + 1rem);
+    z-index: 5;
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius);
+    background: var(--ivory);
+    color: var(--green);
+    font-weight: 600;
+    text-decoration: none;
+    transform: translateY(-200%);
+    opacity: 0;
+  }
+  .reel__skip:focus {
+    transform: none;
+    opacity: 1;
+  }
+
+  /* ── Caption contents ─────────────────────────────────────────────────── */
+  .reel .eyebrow {
+    color: var(--sand);
+  }
+  .reel h1 {
+    font-weight: 600;
+    font-size: clamp(2.5rem, 0.8rem + 3.4vw, 4.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+  }
+  .reel h1 em,
+  .reel h2 em {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--sand);
+  }
+  /* Each headline line slides up from behind its own edge */
+  .reel__line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+  }
+  .reel__line > * {
+    display: block;
+    animation: reel-line 1.1s var(--ease) 0.15s both;
+  }
+  .reel__line + .reel__line > * {
+    animation-delay: 0.3s;
+  }
+  @keyframes reel-line {
+    from {
+      transform: translateY(115%);
+    }
+  }
+  .reel h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.3rem, 1.2rem + 3.2vw, 4.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+  }
+  .reel__caption--outro h2 {
+    font-size: clamp(2rem, 1rem + 2.6vw, 3.6rem);
+  }
+  .reel__local {
+    display: block;
+    margin-top: 0.15em;
+    font-size: 0.62em;
+  }
+  .reel__num {
+    margin: 0 0 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(246, 242, 233, 0.6);
+  }
+  .reel__num span {
+    color: var(--sand);
+  }
+  .reel__lede,
+  .reel__text {
+    margin: 0;
+    font-size: clamp(1rem, 1.2vw, 1.15rem);
+    line-height: 1.6;
+    color: rgba(246, 242, 233, 0.84);
+  }
+  .reel__uses {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 1.25rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line-light);
+    font-size: 0.92rem;
+    color: rgba(246, 242, 233, 0.72);
+  }
+  .reel__uses li {
+    display: flex;
+    gap: 0.7rem;
+  }
+  .reel__uses li::before {
+    content: '';
+    flex: none;
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-top: 0.55em;
+    border-radius: 50%;
+    background: var(--sand);
+  }
+  .reel__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.75rem;
+    margin-top: 1.4rem;
+  }
+  .reel .btn-row {
+    margin-top: 1.6rem;
+  }
+  .reel .btn--ghost {
+    background: rgba(246, 242, 233, 0.06);
+    backdrop-filter: blur(6px);
+  }
+
+  /* ── Still version (no JavaScript or reduced motion) ──────────────────── */
+  .reel__stage {
+    position: relative;
+    display: grid;
+    gap: clamp(2rem, 5vw, 4rem);
+    max-width: var(--max);
+    margin-inline: auto;
+    padding: calc(var(--head) + clamp(2rem, 5vw, 4rem)) var(--gutter) var(--section);
+  }
+  .reel__glow,
+  .reel__canvas,
+  .reel__poster,
+  .reel__tabs,
+  .reel__progress,
+  .reel__hint {
+    display: none;
+  }
+  .reel__media {
+    position: relative;
+    width: min(100%, 24rem);
+    margin-inline: auto;
+  }
+  .reel__still :global(.photo) {
+    border-radius: var(--radius-lg);
+    background: var(--earth-soft);
+  }
+  .reel__captions {
+    display: grid;
+    gap: clamp(2rem, 4vw, 3rem);
+  }
+  .reel__caption {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .reel__caption + .reel__caption {
+    padding-top: clamp(2rem, 4vw, 3rem);
+    border-top: 1px solid var(--line-light);
+  }
+  @media (min-width: 54rem) {
+    .reel__stage {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+    .reel__media {
+      position: sticky;
+      top: 7rem;
+      width: 100%;
+    }
+  }
+
+  /* Curved edge where the hero meets the page */
+  .reel-edge {
+    position: relative;
+    height: clamp(2.75rem, 7.5vw, 7rem);
+    margin-top: -1px;
+    background: var(--earth);
+  }
+  .reel-edge svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .reel-edge__back {
+    fill: var(--sand);
+    opacity: 0.35;
+  }
+  .reel-edge__line {
+    fill: none;
+    stroke: var(--sand);
+    stroke-width: 1.5;
+  }
+  .reel-edge__front {
+    fill: var(--ivory);
+  }
+
+  /* ── Pinned, scroll-driven version ────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .reel {
+      height: 420vh;
+    }
+    :global(.js) .reel__stage {
+      position: sticky;
+      top: 0;
+      display: block;
+      max-width: none;
+      height: 100vh;
+      height: 100svh;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    /* Phones: the whole tower, centred in the upper part of the screen, the words beneath it */
+    :global(.js) .reel {
+      --tower-h: min(54svh, calc(100vw * 16 / 9 * 0.92));
+    }
+    :global(.js) .reel__media {
+      position: absolute;
+      top: calc(var(--head) - 1rem);
+      left: 50%;
+      height: var(--tower-h);
+      width: auto;
+      aspect-ratio: 9 / 16;
+      max-width: none;
+      margin: 0;
+      translate: -50% 0;
+      -webkit-mask-image:
+        linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+        linear-gradient(180deg, transparent, #000 8%, #000 78%, transparent);
+      -webkit-mask-composite: source-in;
+      mask-image:
+        linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent),
+        linear-gradient(180deg, transparent, #000 8%, #000 78%, transparent);
+      mask-composite: intersect;
+    }
+    :global(.js) .reel__still {
+      display: none;
+    }
+    :global(.js) .reel__poster,
+    :global(.js) .reel__canvas {
+      display: block;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* A slow push in, like a camera easing towards the tower */
+      transform: scale(calc(1.08 - 0.08 * min(var(--p) * 1.2, 1)));
+      transform-origin: 50% 42%;
+    }
+    :global(.js) .reel__poster {
+      animation: reel-in 1.4s var(--ease) both;
+    }
+    :global(.js) .reel__canvas {
+      opacity: 0;
+      transition: opacity 0.5s var(--ease);
+    }
+    :global(.js) .reel.has-frame .reel__canvas {
+      opacity: 1;
+    }
+    @keyframes reel-in {
+      from {
+        opacity: 0;
+      }
+    }
+
+    /* Coloured light behind the tower, shifting to suit each product */
+    :global(.js) .reel__glow {
+      display: block;
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(closest-side, var(--earth-soft), transparent);
+    }
+    :global(.js) .reel__glow::after {
+      content: '';
+      position: absolute;
+      inset: 18% 30%;
+      border-radius: 50%;
+      background: var(--glow);
+      opacity: 0.18;
+      filter: blur(70px);
+      transition: background-color 1.2s var(--ease);
+    }
+
+    :global(.js) .reel__copy {
+      position: absolute;
+      inset: 0;
+      padding: var(--head) var(--gutter) calc(1.75rem + env(safe-area-inset-bottom, 0px));
+    }
+    /* A soft fade, in case the words reach up over the foot of the tower */
+    :global(.js) .reel__copy::before {
+      content: '';
+      position: absolute;
+      inset: auto 0 0;
+      height: 46%;
+      background: linear-gradient(180deg, transparent, rgba(30, 24, 17, 0.85) 30%, var(--earth) 60%);
+      pointer-events: none;
+    }
+    :global(.js) .reel__captions {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      height: 100%;
+      gap: 0;
+    }
+    /* Captions share one cell; only the current one shows */
+    :global(.js) .reel__caption {
+      grid-area: 1 / 1;
+      align-content: end;
+      gap: 1rem;
+      padding: 0;
+      border: 0;
+      visibility: hidden;
+      text-shadow: 0 1px 18px rgba(30, 24, 17, 0.6);
+      transition: visibility 0.6s;
+    }
+    :global(.js) .reel__caption + .reel__caption {
+      padding-top: 0;
+      border-top: 0;
+    }
+    :global(.js) .reel__caption.is-active {
+      visibility: visible;
+      transition-delay: 0s;
+    }
+    :global(.js) .reel__left,
+    :global(.js) .reel__right {
+      opacity: 0;
+      transition:
+        opacity 0.5s var(--ease),
+        transform 0.7s var(--ease);
+    }
+    :global(.js) .reel__left {
+      transform: translateX(-22px);
+    }
+    :global(.js) .reel__right {
+      transform: translateX(22px);
+    }
+    :global(.js) .reel__caption.is-active .reel__left,
+    :global(.js) .reel__caption.is-active .reel__right {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0.1s;
+    }
+    :global(.js) .reel__caption.is-active .reel__right {
+      transition-delay: 0.2s;
+    }
+    :global(.js) .reel .btn-row {
+      margin-top: 1.25rem;
+    }
+    :global(.js) .reel__uses {
+      display: none;
+    }
+
+    :global(.js) .reel__hint {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin: 1.5rem 0 0;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(246, 242, 233, 0.62);
+    }
+    :global(.js) .reel__hint span {
+      position: relative;
+      width: 1px;
+      height: 2.25rem;
+      background: var(--line-light);
+      overflow: hidden;
+    }
+    :global(.js) .reel__hint span::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--sand);
+      animation: reel-hint 2.2s var(--ease) infinite;
+    }
+    @keyframes reel-hint {
+      from {
+        transform: translateY(-100%);
+      }
+      to {
+        transform: translateY(100%);
+      }
+    }
+
+    /* Thin progress line along the bottom edge (phones) */
+    :global(.js) .reel__progress {
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 2px;
+      background: var(--line-light);
+    }
+    :global(.js) .reel__progress span {
+      display: block;
+      height: 100%;
+      background: var(--sand);
+      transform: scaleX(var(--p));
+      transform-origin: left;
+    }
+
+    /* Phones: the words have the space under the tower, so they stay compact */
+    @media (max-width: 53.99rem) {
+      :global(.js) .reel__caption {
+        gap: 0.75rem;
+        text-align: center;
+        justify-items: center;
+      }
+      :global(.js) .reel__caption .eyebrow {
+        justify-content: center;
+        margin-bottom: 0.75rem;
+      }
+      :global(.js) .reel__caption .eyebrow::before {
+        display: none;
+      }
+      :global(.js) .reel h1 {
+        font-size: clamp(2.1rem, 9vw, 2.9rem);
+      }
+      :global(.js) .reel h2 {
+        font-size: clamp(2rem, 8.5vw, 2.7rem);
+      }
+      :global(.js) .reel__caption--outro h2 {
+        font-size: clamp(1.7rem, 7vw, 2.2rem);
+      }
+      :global(.js) .reel__local {
+        display: inline;
+        margin-left: 0.3em;
+      }
+      :global(.js) .reel__num {
+        margin-bottom: 0.4rem;
+      }
+      :global(.js) .reel__text {
+        max-width: 30em;
+        font-size: 0.95rem;
+        line-height: 1.55;
+      }
+      :global(.js) .reel__lede,
+      :global(.js) .reel__hint {
+        display: none;
+      }
+      :global(.js) .reel .btn-row {
+        justify-content: center;
+        margin-top: 0.25rem;
+      }
+      :global(.js) .reel__links {
+        justify-content: center;
+        margin-top: 0.25rem;
+      }
+    }
+    @media (max-width: 53.99rem) and (max-height: 46rem) {
+      :global(.js) .reel__caption .eyebrow,
+      :global(.js) .reel__num {
+        display: none;
+      }
+      :global(.js) .reel__text {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    }
+
+    /* ── Wide screens: the tower in the centre, the story on either side ── */
+    @media (min-width: 54rem) {
+      :global(.js) .reel {
+        --tower: min(calc((100svh - var(--head)) * 0.5625), 36vw);
+      }
+      :global(.js) .reel__media {
+        inset: var(--head) auto 0 50%;
+        width: var(--tower);
+        height: auto; /* undo the phones' fixed height: the tower runs the full height of the screen */
+        aspect-ratio: auto;
+        translate: -50% 0;
+        -webkit-mask-image:
+          linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent),
+          linear-gradient(180deg, transparent, #000 7%, #000 82%, transparent);
+        -webkit-mask-composite: source-in;
+        mask-image:
+          linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent),
+          linear-gradient(180deg, transparent, #000 7%, #000 82%, transparent);
+        mask-composite: intersect;
+      }
+      :global(.js) .reel__glow {
+        inset: 0 auto 0 50%;
+        width: calc(var(--tower) * 2.4);
+        translate: -50% 0;
+      }
+      :global(.js) .reel__copy {
+        padding-bottom: 4.5rem;
+      }
+      :global(.js) .reel__copy::before {
+        display: none;
+      }
+      :global(.js) .reel__captions {
+        max-width: 96rem;
+        margin-inline: auto;
+      }
+      :global(.js) .reel__caption {
+        grid-template-columns: minmax(0, 1fr) var(--tower) minmax(0, 1fr);
+        column-gap: clamp(1.5rem, 3.5vw, 4rem);
+        align-content: center;
+        align-items: center;
+        text-shadow: none;
+      }
+      /* Left of the tower: set against it, aligned to its edge */
+      :global(.js) .reel__left {
+        grid-column: 1;
+        justify-self: end;
+        max-width: 27rem;
+        text-align: right;
+      }
+      /* the eyebrow's rule points in towards the tower */
+      :global(.js) .reel__left .eyebrow {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+      }
+      :global(.js) .reel__right {
+        grid-column: 3;
+        max-width: 25rem;
+      }
+      :global(.js) .reel__uses {
+        display: grid;
+      }
+      :global(.js) .reel__caption--intro .reel__left {
+        align-self: center;
+      }
+
+      /* Product index under the tower */
+      :global(.js) .reel__tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.9rem;
+        position: absolute;
+        bottom: clamp(1.25rem, 3.5vh, 2.25rem);
+        left: 50%;
+        width: max(var(--tower), 30rem);
+        translate: -50% 0;
+      }
+      :global(.js) .reel__progress {
+        display: none;
+      }
+    }
+
+    :global(.js) .reel__tab {
+      display: grid;
+      gap: 0.65rem;
+      width: 100%;
+      padding: 0 0 0.25rem;
+      border: 0;
+      background: none;
+      color: rgba(246, 242, 233, 0.55);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: color 0.35s var(--ease);
+    }
+    :global(.js) .reel__tab:hover,
+    :global(.js) .reel__tab[aria-current] {
+      color: var(--ivory);
+    }
+    :global(.js) .reel__tab-bar {
+      position: relative;
+      height: 2px;
+      background: var(--line-light);
+      overflow: hidden;
+    }
+    :global(.js) .reel__tab-bar span {
+      position: absolute;
+      inset: 0;
+      background: var(--sand);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s var(--ease);
+    }
+    :global(.js) .reel__tab[aria-current] .reel__tab-bar span {
+      transform: scaleX(1);
+    }
+  }
+</style>

@@ -9,7 +9,7 @@ const image = product.images[0];
 const category = getCategory(product.category);
 ---
 
-<article class="product-tile" data-category={product.category} data-reveal>
+<article class="product-tile" data-category={product.category}>
   <a class="product-tile__image" href={productHref(product)} tabindex="-1" aria-hidden="true">
     <Photo file={image.file} alt="" cutout={image.cutout} />
     <span class="product-tile__badge">{category?.shortName}</span>

@@ -15,7 +15,11 @@
   --line: rgba(37, 41, 35, 0.16);
   --line-light: rgba(246, 242, 233, 0.22);
   --cream: #fffdf8; /* card surface */
-  --sand: #e6c79c; /* warm accent on dark green */
+  --sand: #e6c79c; /* warm accent on the dark bands */
+  /* Dark bands take their colour from the product reel: warm stone and jute in low light */
+  --earth: #1e1811;
+  --earth-raised: #2a2118;
+  --earth-soft: #483a28;
 
   /* Two families only: the serif is for large headlines and figures, the sans for everything else. */
   --serif: 'Source Serif 4 Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
@@ -176,7 +180,7 @@ ol {
 }
 
 .on-dark {
-  background: var(--green);
+  background: var(--earth);
   color: var(--ivory);
 }
 .on-dark h2 em,
@@ -203,7 +207,7 @@ ol {
   background: currentColor;
 }
 .on-dark .eyebrow {
-  color: var(--sage);
+  color: var(--sand);
 }
 
 .lede {
@@ -435,6 +439,58 @@ ol {
 .site-header.is-scrolled {
   box-shadow: 0 14px 32px -24px rgba(16, 48, 42, 0.55);
 }
+/* Over a dark hero: fixed, see-through and light, until the hero has scrolled away */
+.site-header--overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  transition:
+    box-shadow 0.3s var(--ease),
+    background-color 0.4s var(--ease),
+    border-color 0.4s var(--ease);
+}
+.site-header--overlay:not(.is-solid) {
+  background: linear-gradient(180deg, rgba(30, 24, 17, 0.72), rgba(30, 24, 17, 0)) border-box;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  box-shadow: none;
+  color: var(--ivory);
+}
+.site-header--overlay:not(.is-solid) .wordmark {
+  color: var(--ivory);
+}
+.site-header--overlay:not(.is-solid) .wordmark__secondary {
+  color: var(--sand);
+}
+.site-header--overlay:not(.is-solid) .menu-toggle {
+  color: var(--ivory);
+  border-color: var(--line-light);
+}
+.site-header--overlay:not(.is-solid) .site-header__progress {
+  background: var(--sand);
+}
+@media (min-width: 64rem) {
+  .site-header--overlay:not(.is-solid) .site-nav a[aria-current='page'] {
+    color: var(--ivory);
+  }
+  .site-header--overlay:not(.is-solid) .site-nav a::after {
+    background: var(--sand);
+  }
+}
+/* Phones: the hero carries its own enquiry buttons, so the floating one waits until it has passed */
+@media (max-width: 53.99rem) {
+  .site-header--overlay:not(.is-solid) ~ .fab {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(1rem);
+  }
+}
+/* The mobile menu panel stays light whatever the header is doing */
+@media (max-width: 63.99rem) {
+  .site-header--overlay .site-nav {
+    color: var(--charcoal);
+  }
+}
 .site-header.is-scrolled .site-header__inner {
   min-height: 4.75rem;
 }
@@ -625,8 +681,20 @@ a:hover .photo:not(.photo--cutout) img {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  padding-block: clamp(3rem, 7vw, 6rem) clamp(2.5rem, 5vw, 4rem);
-  background: linear-gradient(180deg, var(--ivory-deep), var(--ivory));
+  padding-block: clamp(3.5rem, 8vw, 7rem) clamp(3rem, 6vw, 5rem);
+  background:
+    radial-gradient(50rem 30rem at 78% 40%, rgba(72, 58, 40, 0.85), transparent 70%),
+    var(--earth);
+  color: var(--ivory);
+}
+.page-hero .eyebrow {
+  color: var(--sand);
+}
+.page-hero h1 em {
+  color: var(--sand);
+}
+.page-hero .container {
+  position: relative;
 }
 /* Decorative rings, echoing a market basket seen from above */
 .page-hero::after {
@@ -638,7 +706,7 @@ a:hover .photo:not(.photo--cutout) img {
   width: 38rem;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: repeating-radial-gradient(circle, transparent 0 34px, rgba(23, 63, 53, 0.09) 34px 35px);
+  background: repeating-radial-gradient(circle, transparent 0 34px, rgba(246, 242, 233, 0.06) 34px 35px);
   -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 70%);
   mask-image: radial-gradient(circle, #000 20%, transparent 70%);
 }
@@ -663,6 +731,7 @@ a:hover .photo:not(.photo--cutout) img {
 }
 .page-hero .lede {
   margin-top: 1.5rem;
+  color: rgba(246, 242, 233, 0.84);
 }
 
 .breadcrumb {
@@ -876,7 +945,7 @@ a:hover .photo:not(.photo--cutout) img {
   isolation: isolate;
   background:
     radial-gradient(60rem 30rem at 85% 120%, rgba(185, 101, 69, 0.42), transparent 60%),
-    radial-gradient(40rem 26rem at 0% -10%, rgba(167, 181, 154, 0.2), transparent 60%), var(--green);
+    radial-gradient(40rem 26rem at 0% -10%, rgba(72, 58, 40, 0.75), transparent 60%), var(--earth);
 }
 .cta::after {
   content: '';
@@ -912,17 +981,17 @@ a:hover .photo:not(.photo--cutout) img {
   filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.4));
   animation: bobble 5s ease-in-out infinite alternate;
 }
-.cta__friend--tomato {
+.cta__friend--low {
   left: -2.25rem;
   bottom: 9%;
 }
-.cta__friend--garlic {
+.cta__friend--side {
   right: -1.5rem;
   top: 20%;
   animation-duration: 6.4s;
   animation-delay: -2s;
 }
-.cta__friend--onion {
+.cta__friend--top {
   left: 6%;
   top: -1.4rem;
   animation-duration: 4.2s;
@@ -957,7 +1026,7 @@ a:hover .photo:not(.photo--cutout) img {
 
 .site-footer {
   border-top: 3px solid var(--terracotta);
-  background: var(--charcoal);
+  background: #15110c;
   color: rgba(246, 242, 233, 0.78);
   padding-block: clamp(3.5rem, 7vw, 5.5rem) 2rem;
   font-size: 0.95rem;
@@ -989,7 +1058,7 @@ a:hover .photo:not(.photo--cutout) img {
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--sage);
+  color: var(--sand);
   margin-bottom: 1.1rem;
 }
 .site-footer li {
@@ -1189,7 +1258,7 @@ a:hover .photo:not(.photo--cutout) img {
   bottom: -12rem;
   width: 28rem;
   aspect-ratio: 1;
-  background: radial-gradient(circle at 35% 35%, rgba(167, 181, 154, 0.5), rgba(167, 181, 154, 0.1) 70%);
+  background: radial-gradient(circle at 35% 35%, rgba(185, 101, 69, 0.22), rgba(185, 101, 69, 0.04) 70%);
   border-radius: 58% 42% 55% 45% / 48% 60% 40% 52%;
   translate: 0 calc(var(--sy, 0px) * -0.18);
   animation: blob 18s ease-in-out infinite alternate;
@@ -1293,25 +1362,6 @@ main > .section.on-dark:not(.cta) {
   transform: scale(var(--t));
 }
 
-/* ── Page-hero drawing (HeroArt.astro) ──────────────────────────────────── */
-
-.hero-art {
-  display: none;
-  position: absolute;
-  right: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
-  bottom: clamp(1rem, 3vw, 2.5rem);
-  width: clamp(17rem, 29vw, 25rem);
-  height: auto;
-  overflow: visible;
-  pointer-events: none;
-  translate: 0 calc(var(--sy, 0px) * 0.1);
-}
-@media (min-width: 64rem) {
-  .hero-art {
-    display: block;
-  }
-}
-
 /* ── Cards that lean towards the pointer ────────────────────────────────── */
 
 html.js [data-tilt] {
@@ -1337,7 +1387,7 @@ html.js [data-tilt]:hover {
   opacity: 1;
 }
 
-/* ── Rolling onion scroll marker ────────────────────────────────────────── */
+/* ── Produce characters (closing call to action) ────────────────────────── */
 
 .roller {
   display: block;
@@ -1374,219 +1424,6 @@ html.js [data-tilt]:hover {
     transform: scaleY(0.08);
   }
 }
-[data-roll-spin] {
-  display: block;
-  transform-origin: 50% 58%; /* the middle of the bulb, not of the drawing */
-  will-change: transform;
-}
-
-/* Wide screens: the onion rolls down a rail on the right edge */
-.roll {
-  display: none;
-  position: fixed;
-  z-index: 45;
-  top: 8.5rem;
-  bottom: 7.5rem;
-  right: clamp(0.15rem, 0.6vw, 1.25rem);
-  width: 2.75rem;
-  --flake: #d48a9a; /* onion skin */
-  pointer-events: none;
-}
-@media (min-width: 64rem) {
-  .js .roll {
-    display: block;
-  }
-}
-.roll[data-kind='tomato'] {
-  --flake: #e2574a;
-}
-.roll[data-kind='garlic'] {
-  --flake: #d9c4a3;
-}
-.roll[data-kind='moringa'] {
-  --flake: #7fb463; /* a puff of green powder */
-}
-.roll__rail {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  margin-left: -1px;
-  border-radius: 2px;
-  background: rgba(150, 152, 140, 0.4);
-  overflow: hidden;
-}
-.roll__fill {
-  position: absolute;
-  inset: 0;
-  background: var(--terracotta);
-  transform: scaleY(0);
-  transform-origin: top;
-}
-.roll__ball {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: none;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.roll__bob {
-  display: block;
-  filter: drop-shadow(0 6px 7px rgba(16, 48, 42, 0.4));
-  transition: transform 0.35s var(--ease);
-}
-.roll__ball:hover .roll__bob {
-  transform: scale(1.14);
-}
-/* Before any scrolling, the onion rocks on the spot to invite the first move */
-.roll.is-top .roll__bob {
-  animation: rock 2.6s ease-in-out infinite;
-}
-@keyframes rock {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-9deg);
-  }
-  50% {
-    transform: translateY(9px) rotate(14deg);
-  }
-}
-/* A click makes it hop before it rolls on */
-.roll .roll__bob.is-hop {
-  animation: hop 0.55s cubic-bezier(0.3, 0.6, 0.4, 1);
-}
-@keyframes hop {
-  0% {
-    transform: translateY(0) scale(1.1, 0.85);
-  }
-  40% {
-    transform: translateY(-20px) scale(0.92, 1.12);
-  }
-  75% {
-    transform: translateY(0) scale(1.14, 0.84);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-  }
-}
-.roll__squash {
-  display: block;
-  will-change: transform;
-}
-/* Flakes of skin (or a puff of powder) left behind while it rolls fast */
-.roll__flake {
-  position: absolute;
-  left: 50%;
-  width: 7px;
-  height: 5px;
-  margin: -3px 0 0 -4px;
-  border-radius: 60% 40% 55% 45%;
-  background: var(--flake);
-  opacity: 0;
-  pointer-events: none;
-  animation: flake 0.85s ease-out forwards;
-}
-@keyframes flake {
-  from {
-    opacity: 0.95;
-    transform: none;
-  }
-  to {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy)) rotate(var(--turn)) scale(0.4);
-  }
-}
-.roll__hint {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 1.1rem);
-  writing-mode: vertical-rl;
-  translate: -50% 0;
-  padding: 0.65rem 0.35rem 0.5rem;
-  border: 1px solid var(--line-light);
-  border-radius: 999px;
-  background: var(--green); /* a solid pill stays readable over both the photograph and the ivory page */
-  color: var(--ivory);
-  font: 600 0.62rem/1 var(--sans);
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  opacity: 0;
-  transition: opacity 0.4s var(--ease);
-}
-.roll.is-top /* A click makes it hop before it rolls on */
-.roll .roll__bob.is-hop {
-  animation: hop 0.55s cubic-bezier(0.3, 0.6, 0.4, 1);
-}
-@keyframes hop {
-  0% {
-    transform: translateY(0) scale(1.1, 0.85);
-  }
-  40% {
-    transform: translateY(-20px) scale(0.92, 1.12);
-  }
-  75% {
-    transform: translateY(0) scale(1.14, 0.84);
-  }
-  100% {
-    transform: translateY(0) scale(1);
-  }
-}
-.roll__squash {
-  display: block;
-  will-change: transform;
-}
-/* Flakes of skin (or a puff of powder) left behind while it rolls fast */
-.roll__flake {
-  position: absolute;
-  left: 50%;
-  width: 7px;
-  height: 5px;
-  margin: -3px 0 0 -4px;
-  border-radius: 60% 40% 55% 45%;
-  background: var(--flake);
-  opacity: 0;
-  pointer-events: none;
-  animation: flake 0.85s ease-out forwards;
-}
-@keyframes flake {
-  from {
-    opacity: 0.95;
-    transform: none;
-  }
-  to {
-    opacity: 0;
-    transform: translate(var(--dx), var(--dy)) rotate(var(--turn)) scale(0.4);
-  }
-}
-.roll__hint {
-  opacity: 1;
-}
-
-/* Small screens: the onion rolls along the progress line under the header */
-.site-header__bead {
-  display: none;
-  position: absolute;
-  left: 0;
-  bottom: calc(-0.75rem - 1px);
-  width: 1.5rem;
-  height: 1.5rem;
-  pointer-events: none;
-  filter: drop-shadow(0 3px 4px rgba(16, 48, 42, 0.35));
-  will-change: transform;
-}
-@media (max-width: 63.99rem) {
-  .js .site-header__bead {
-    display: block;
-  }
-}
-
 /* ── Motion ─────────────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1598,8 +1435,7 @@ html.js [data-tilt]:hover {
   .page-hero::after,
   .cta .photo,
   .cta__friend,
-  .roller__open,
-  .roll.is-top .roll__bob {
+  .roller__open {
     animation: none !important;
   }
   *,

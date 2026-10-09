@@ -6,10 +6,9 @@ import '../styles/global.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Arrow from '../components/Arrow.astro';
-import Roller from '../components/Roller.astro';
 import { site, getImage, whatsappHref } from '../data/index.js';
 
-const { title, description = site.description, image = 'black-garlic-bulbs.jpg', noindex = false, roller = 'onion' } = Astro.props;
+const { title, description = site.description, image = 'black-garlic-bulbs.jpg', noindex = false, overlay = false } = Astro.props;
 
 const fullTitle = title ? `${title} | ${site.name}` : `${site.name} — ${site.tagline}`;
 const whatsapp = whatsappHref();
@@ -64,7 +63,7 @@ const organisation = {
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    <Header roller={roller} />
+    <Header overlay={overlay} />
     <main id="main">
       <slot />
     </main>
@@ -76,19 +75,6 @@ const organisation = {
         </a>
       )
     }
-    {/* Scroll marker: a produce character that rolls down a rail as the page scrolls (wide screens).
-        Pages can pick the character with the `roller` prop: onion, tomato, garlic or moringa. */}
-    <div class="roll is-top" data-roll data-kind={roller}>
-      <span class="roll__rail" aria-hidden="true"><span class="roll__fill" data-roll-fill></span></span>
-      <button type="button" class="roll__ball" data-roll-ball aria-label="Scroll to the next section">
-        <span class="roll__bob">
-          <span class="roll__squash" data-roll-squash>
-            <span class="roll__spin" data-roll-spin><Roller kind={roller} size={44} /></span>
-          </span>
-        </span>
-        <span class="roll__hint" aria-hidden="true">Scroll</span>
-      </button>
-    </div>
     <script is:inline>
       (function () {
         var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -118,229 +104,14 @@ const organisation = {
           heading.classList.add('is-split');
         });
 
-        // Rolling marker. Its place on the rail follows the scroll position on a spring, so it overshoots
-        // and settles. It turns while the page moves and stretches with its speed; when scrolling stops it
-        // rocks back upright and opens its eyes. Fast rolling sheds a few flakes of skin behind it.
-        var roll = document.querySelector('[data-roll]');
-        var ball = document.querySelector('[data-roll-ball]');
-        var bob = document.querySelector('.roll__bob');
-        var squash = document.querySelector('[data-roll-squash]');
-        var fill = document.querySelector('[data-roll-fill]');
-        var bead = document.querySelector('[data-roll-bead]');
-        var spins = document.querySelectorAll('[data-roll-spin]');
-        var header = document.querySelector('.site-header');
-        var heroBg = document.querySelector('.hero__bg');
+        // The page-hero shapes and reel still move a little slower than the page
         var pageHero = document.querySelector('.page-hero');
-        var TURN = Math.PI * 2;
-        var place = 0;
-        var placeSpeed = 0;
-        var angle = 0;
-        var speed = 0;
-        var spinTarget = 0;
-        var lastY = window.scrollY;
-        var lastMove = 0;
-        var lastFlake = 0;
-        var wasActive = false;
-        var looping = false;
-
-        var railLength = function () {
-          return roll && ball ? Math.max(roll.clientHeight - ball.offsetHeight, 0) : 0;
-        };
-
-        var draw = function (stretch) {
-          var beadLength = bead && header ? Math.max(header.clientWidth - bead.offsetWidth, 0) : 0;
-          var clamped = Math.max(0, Math.min(place, 1));
-          if (ball) ball.style.transform = 'translate3d(0,' + place * railLength() + 'px,0)';
-          if (fill) fill.style.transform = 'scaleY(' + clamped + ')';
-          if (bead) bead.style.transform = 'translate3d(' + clamped * beadLength + 'px,0,0)';
-          if (squash) squash.style.transform = 'scale(' + (1 - stretch * 0.6) + ',' + (1 + stretch) + ')';
-          spins.forEach(function (spin) {
-            spin.style.transform = 'rotate(' + angle + 'rad)';
-          });
-        };
-
-        var shed = function (top, goingDown) {
-          var flake = document.createElement('span');
-          flake.className = 'roll__flake';
-          flake.style.top = top + 'px';
-          flake.style.setProperty('--dx', Math.random() * 40 - 32 + 'px');
-          flake.style.setProperty('--dy', (goingDown ? -1 : 1) * (16 + Math.random() * 28) + 'px');
-          flake.style.setProperty('--turn', Math.random() * 260 - 130 + 'deg');
-          flake.addEventListener('animationend', function () {
-            flake.remove();
-          });
-          roll.appendChild(flake);
-        };
-
-        var step = function (now) {
-          var moved = window.scrollY - lastY;
-          var range = document.documentElement.scrollHeight - window.innerHeight;
-          var targetPlace = range > 0 ? Math.min(window.scrollY / range, 1) : 0;
-          var active = now - lastMove < 170;
-          lastY = window.scrollY;
-
-          if (reduceMotion) {
-            place = targetPlace;
-            looping = false;
-            return draw(0);
-          }
-
-          if (active) spinTarget += moved / 62;
-          else if (wasActive) spinTarget = Math.round(spinTarget / TURN) * TURN; // come to rest the right way up
-          if (active !== wasActive) {
-            spins.forEach(function (spin) {
-              spin.classList.toggle('is-rolling', active);
-            });
-          }
-          wasActive = active;
-
-          placeSpeed = (placeSpeed + (targetPlace - place) * 0.1) * 0.74;
-          place += placeSpeed;
-          speed = (speed + (spinTarget - angle) * 0.08) * 0.8;
-          angle += speed;
-
-          var length = railLength();
-          draw(Math.min((Math.abs(placeSpeed) * length) / 30, 0.2));
-
-          if (active && length && Math.abs(moved) > 5 && now - lastFlake > 110) {
-            lastFlake = now;
-            shed(place * length + ball.offsetHeight / 2, moved > 0);
-          }
-
-          var settled =
-            Math.abs(targetPlace - place) < 0.0004 &&
-            Math.abs(placeSpeed) < 0.0003 &&
-            Math.abs(speed) < 0.0008 &&
-            Math.abs(spinTarget - angle) < 0.003;
-          if (!active && settled) {
-            place = targetPlace;
-            angle = spinTarget;
-            looping = false;
-            return draw(0);
-          }
-          requestAnimationFrame(step);
-        };
-
-        var onMove = function () {
-          lastMove = performance.now();
-          if (roll) roll.classList.toggle('is-top', window.scrollY < 40);
-          // The hero photograph and the page-hero shapes move a little slower than the page
-          if (!reduceMotion && window.scrollY < window.innerHeight * 1.3) {
-            if (heroBg) heroBg.style.transform = 'translate3d(0,' + window.scrollY * 0.22 + 'px,0)';
-            if (pageHero) pageHero.style.setProperty('--sy', window.scrollY + 'px');
-          }
-          if (!looping) {
-            looping = true;
-            requestAnimationFrame(step);
-          }
-        };
-        window.addEventListener('scroll', onMove, { passive: true });
-        window.addEventListener('resize', onMove);
-        onMove();
-        lastMove = 0; // placing it on load is not a roll, so it starts with its eyes open
-
-        // At rest, the character's eyes follow the pointer
-        if (roll && ball && !reduceMotion) {
-          window.addEventListener(
-            'pointermove',
-            function (event) {
-              if (!roll.clientHeight) return;
-              var box = ball.getBoundingClientRect();
-              var dx = event.clientX - (box.left + box.width / 2);
-              var dy = event.clientY - (box.top + box.height / 2);
-              var distance = Math.sqrt(dx * dx + dy * dy) || 1;
-              roll.style.setProperty('--px', ((dx / distance) * 1.7).toFixed(2));
-              roll.style.setProperty('--py', ((dy / distance) * 1.7).toFixed(2));
-            },
-            { passive: true },
-          );
-        }
-
-        // Clicking it makes it hop, then rolls on to the next section (or back to the top from the end)
-        if (ball) {
-          if (bob) {
-            bob.addEventListener('animationend', function () {
-              bob.classList.remove('is-hop');
-            });
-          }
-          ball.addEventListener('click', function () {
-            if (bob && !reduceMotion) bob.classList.add('is-hop');
-            var offset = header ? header.offsetHeight : 0;
-            var sections = document.querySelectorAll('main > section, .site-footer');
-            var top = 0;
-            for (var i = 0; i < sections.length; i++) {
-              var edge = sections[i].getBoundingClientRect().top;
-              if (edge > offset + 24) {
-                top = window.scrollY + edge - offset + 1;
-                break;
-              }
-            }
-            var atEnd = window.innerHeight + window.scrollY > document.documentElement.scrollHeight - 8;
-            window.scrollTo({ top: atEnd ? 0 : top, behavior: reduceMotion ? 'auto' : 'smooth' });
-          });
-        }
-        // Scroll-scrubbed pieces: each [data-scrub] gets --p, from 0 to 1, as it is scrolled through.
-        // A pinned one (much taller than the screen) runs across its whole pin, starting half a screen
-        // early; a shorter one runs while it rises through the screen. --p glides towards the scroll.
-        var scrubs = Array.prototype.slice.call(document.querySelectorAll('[data-scrub]')).map(function (el) {
-          return { el: el, shown: 0, target: 0 };
-        });
-        if (scrubs.length && !reduceMotion) {
-          var scrubbing = false;
-          var measureScrub = function (el) {
-            var box = el.getBoundingClientRect();
-            var screen = window.innerHeight;
-            var pinned = box.height > screen * 1.2;
-            var done = pinned
-              ? (screen * 0.5 - box.top) / (box.height - screen * 0.5)
-              : (screen * 0.92 - box.top) / (screen * 0.62);
-            return Math.max(0, Math.min(done, 1));
+        if (pageHero && !reduceMotion) {
+          var onMove = function () {
+            if (window.scrollY < window.innerHeight * 1.3) pageHero.style.setProperty('--sy', window.scrollY + 'px');
           };
-          var scrubStep = function () {
-            scrubbing = false;
-            scrubs.forEach(function (scrub) {
-              if (scrub.shown === scrub.target) return;
-              scrub.shown += (scrub.target - scrub.shown) * 0.14;
-              if (Math.abs(scrub.target - scrub.shown) < 0.0005) scrub.shown = scrub.target;
-              else scrubbing = true;
-              scrub.el.style.setProperty('--p', scrub.shown.toFixed(4));
-            });
-            if (scrubbing) requestAnimationFrame(scrubStep);
-          };
-          var onScrub = function () {
-            scrubs.forEach(function (scrub) {
-              scrub.target = measureScrub(scrub.el);
-            });
-            if (!scrubbing) {
-              scrubbing = true;
-              requestAnimationFrame(scrubStep);
-            }
-          };
-          scrubs.forEach(function (scrub) {
-            scrub.shown = scrub.target = measureScrub(scrub.el); // no glide on load
-            scrub.el.style.setProperty('--p', scrub.shown.toFixed(4));
-          });
-          window.addEventListener('scroll', onScrub, { passive: true });
-          window.addEventListener('resize', onScrub);
-        }
-
-        // Cards marked data-tilt lean towards the pointer, with a soft light under it
-        if (!reduceMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-          document.querySelectorAll('[data-tilt]').forEach(function (card) {
-            card.addEventListener('pointermove', function (event) {
-              var box = card.getBoundingClientRect();
-              var x = (event.clientX - box.left) / box.width;
-              var y = (event.clientY - box.top) / box.height;
-              card.style.setProperty('--ry', ((x - 0.5) * 7).toFixed(2) + 'deg');
-              card.style.setProperty('--rx', ((0.5 - y) * 7).toFixed(2) + 'deg');
-              card.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
-              card.style.setProperty('--my', (y * 100).toFixed(1) + '%');
-            });
-            card.addEventListener('pointerleave', function () {
-              card.style.removeProperty('--rx');
-              card.style.removeProperty('--ry');
-            });
-          });
+          window.addEventListener('scroll', onMove, { passive: true });
+          onMove();
         }
 
         var items = document.querySelectorAll('[data-reveal]');
@@ -381,6 +152,11 @@ const organisation = {
           onScroll();
         }
       })();
+    </script>
+    <script>
+      // Scroll-linked effects (GSAP ScrollTrigger) and entrances and interactions (Motion)
+      import '../scripts/scroll-effects';
+      import '../scripts/interactions';
     </script>
   </body>
 </html>

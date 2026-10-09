@@ -107,6 +107,70 @@ export const products = [
     documents: [],
   },
   {
+    slug: 'green-cardamom',
+    name: 'Green Cardamom',
+    category: 'spices',
+    featured: false,
+    summary:
+      'Whole green pods (elachi) holding small, fragrant seeds — a warm, sweet aroma for sweets, tea, rice dishes and spice blends.',
+    intro: [
+      'Green cardamom, known across India as elachi, is one of the best-loved spices of South India. Each pod holds a cluster of small dark seeds with a sweet, warm and gently floral aroma.',
+      'Cardamom is graded by colour, size and pod quality. Tell us the grade, pack size and documentation your market needs and we will respond with what we can offer.',
+    ],
+    images: [
+      {
+        file: 'cardamom-pods.jpg',
+        alt: 'Whole green cardamom pods scattered across a wooden table (computer-generated image)',
+      },
+    ],
+    uses: [
+      'Sweets, desserts and baked goods',
+      'Tea, coffee and beverage blends',
+      'Rice dishes, curries and savoury cooking',
+      'Spice blends and ingredient supply',
+    ],
+    origin: '',
+    forms: [],
+    specifications: [],
+    packaging: [],
+    moq: '',
+    availability: '',
+    storage: '',
+    documents: [],
+  },
+  {
+    slug: 'black-pepper',
+    name: 'Black Pepper',
+    category: 'spices',
+    featured: false,
+    summary:
+      'Whole black peppercorns — the dried berries of the pepper vine, with a sharp, warming heat for seasoning and processing.',
+    intro: [
+      'Black pepper is the dried berry of a flowering vine long grown in the hills of South India. Whole peppercorns keep their sharp, warming heat until they are cracked or ground.',
+      'Pepper is traded by grade and density. Share the grade, quantity and destination you have in mind and we will discuss what we can supply.',
+    ],
+    images: [
+      {
+        file: 'black-peppercorns.jpg',
+        alt: 'Whole black peppercorns scattered across a wooden table (computer-generated image)',
+      },
+    ],
+    uses: [
+      'Table pepper, seasonings and spice blends',
+      'Sauces, marinades and ready meals',
+      'Grinding, cracking and food processing',
+      'Food-service and ingredient supply',
+    ],
+    origin: '',
+    forms: [],
+    specifications: [],
+    packaging: [],
+    moq: '',
+    availability: '',
+    storage: '',
+    documents: [],
+  },
+  {
     slug: 'onions',
     name: 'Onions',
     category: 'fresh-produce',

@@ -5,7 +5,7 @@ export const faqs = [
   {
     question: 'Which products are currently available?',
     answer:
-      'Our focus is black garlic and moringa powder, alongside fresh produce beginning with onions and tomatoes. Availability varies by product and season, so we confirm what we can offer when you send an enquiry.',
+      'Our focus is black garlic and moringa powder, alongside green cardamom, black pepper and fresh produce beginning with onions and tomatoes. Availability varies by product and season, so we confirm what we can offer when you send an enquiry.',
   },
   {
     question: 'What is the minimum order quantity?',

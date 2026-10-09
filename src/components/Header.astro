@@ -1,15 +1,15 @@
 ---
 import Wordmark from './Wordmark.astro';
-import Roller from './Roller.astro';
 import { site } from '../data/index.js';
 
-const { roller = 'onion' } = Astro.props;
+// overlay: the header floats, see-through, over a dark hero until the page scrolls past it
+const { overlay = false } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const path = Astro.url.pathname.slice(base.length).replace(/\/?$/, '/');
 const isCurrent = (href) => (href === '/' ? path === '/' : path.startsWith(href));
 ---
 
-<header class="site-header">
+<header class:list={['site-header', overlay && 'site-header--overlay']}>
   <div class="container site-header__inner">
     <Wordmark />
 
@@ -42,10 +42,6 @@ const isCurrent = (href) => (href === '/' ? path === '/' : path.startsWith(href)
     </div>
   </div>
   <span class="site-header__progress" aria-hidden="true"></span>
-  {/* On small screens the scroll onion rolls along the progress line instead of down the side */}
-  <span class="site-header__bead" data-roll-bead aria-hidden="true">
-    <span data-roll-spin><Roller kind={roller} size={26} /></span>
-  </span>
 </header>
 
 <script>
@@ -56,8 +52,11 @@ const isCurrent = (href) => (href === '/' ? path === '/' : path.startsWith(href)
   // Tighten the sticky header once the page has scrolled
   if (header) {
     const progress = header.querySelector('.site-header__progress');
+    // On pages with a dark hero, stay see-through until the hero has scrolled away
+    const hero = header.classList.contains('site-header--overlay') ? document.querySelector('[data-header-over]') : null;
     const onScroll = () => {
       header.classList.toggle('is-scrolled', window.scrollY > 48);
+      header.classList.toggle('is-solid', !hero || hero.getBoundingClientRect().bottom <= header.offsetHeight);
       const range = document.documentElement.scrollHeight - window.innerHeight;
       if (progress) progress.style.transform = `scaleX(${range > 0 ? Math.min(window.scrollY / range, 1) : 0})`;
     };

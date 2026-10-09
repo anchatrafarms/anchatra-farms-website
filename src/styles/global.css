@@ -1261,6 +1261,82 @@ main > .section.on-dark:not(.cta) {
   }
 }
 
+/* ── Scroll-scrubbed pieces ─────────────────────────────────────────────── */
+
+/* The script in Base.astro sets --p (0–1) on every [data-scrub] as it is scrolled through.
+   Inside one, an element with --a and --b (its start and end on that scale) can draw, rise,
+   fade or pop in step with the scroll. Without the script, --p stays at 1: the finished state. */
+[data-scrub] {
+  --p: 1;
+}
+.s-draw,
+.s-rise,
+.s-fade,
+.s-pop {
+  --t: clamp(0, (var(--p) - var(--a, 0)) / (var(--b, 1) - var(--a, 0)), 1);
+}
+.s-draw {
+  stroke-dasharray: 1; /* needs pathLength="1" on the element */
+  stroke-dashoffset: calc(1 - var(--t));
+  opacity: calc(var(--t) * 14);
+}
+.s-rise {
+  opacity: calc(var(--t) * 1.6);
+  transform: translateY(calc((1 - var(--t)) * 22px));
+}
+.s-fade {
+  opacity: var(--t);
+}
+.s-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(var(--t));
+}
+
+/* ── Page-hero drawing (HeroArt.astro) ──────────────────────────────────── */
+
+.hero-art {
+  display: none;
+  position: absolute;
+  right: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+  bottom: clamp(1rem, 3vw, 2.5rem);
+  width: clamp(17rem, 29vw, 25rem);
+  height: auto;
+  overflow: visible;
+  pointer-events: none;
+  translate: 0 calc(var(--sy, 0px) * 0.1);
+}
+@media (min-width: 64rem) {
+  .hero-art {
+    display: block;
+  }
+}
+
+/* ── Cards that lean towards the pointer ────────────────────────────────── */
+
+html.js [data-tilt] {
+  position: relative;
+  transform: perspective(60rem) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(var(--lift, 0px));
+}
+html.js [data-tilt]:hover {
+  --lift: -6px;
+}
+/* a soft light that follows the pointer across the card */
+[data-tilt]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(16rem circle at var(--mx, 50%) var(--my, 50%), rgba(255, 253, 248, 0.55), transparent 65%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+[data-tilt]:hover::after {
+  opacity: 1;
+}
+
 /* ── Rolling onion scroll marker ────────────────────────────────────────── */
 
 .roller {

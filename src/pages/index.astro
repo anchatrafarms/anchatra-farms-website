@@ -154,7 +154,7 @@ const steps = [
         {
           products.map((product, index) => (
             <li data-reveal>
-              <a class="pcard" href={productHref(product)}>
+              <a class="pcard" href={productHref(product)} data-tilt>
                 <div class="pcard__media">
                   <Photo
                     file={product.images[0].file}
@@ -657,7 +657,6 @@ const steps = [
       border-color 0.45s var(--ease);
   }
   .pcard:hover {
-    transform: translateY(-6px);
     box-shadow: var(--shadow-md);
     border-color: rgba(23, 63, 53, 0.32);
   }

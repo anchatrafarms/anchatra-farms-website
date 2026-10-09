@@ -3,6 +3,9 @@ import Base from '../layouts/Base.astro';
 import Photo from '../components/Photo.astro';
 import Arrow from '../components/Arrow.astro';
 import ClosingCta from '../components/ClosingCta.astro';
+import NameReveal from '../components/NameReveal.astro';
+import Globe from '../components/Globe.astro';
+import HeroArt from '../components/HeroArt.astro';
 import { site } from '../data/index.js';
 ---
 
@@ -12,6 +15,7 @@ import { site } from '../data/index.js';
   image="market-stall.jpg"
 >
   <section class="page-hero">
+    <HeroArt kind="story" />
     <div class="container">
       <p class="eyebrow">Our story</p>
       <h1>We carry our hometown <em>in our name.</em></h1>
@@ -22,25 +26,8 @@ import { site } from '../data/index.js';
     </div>
   </section>
 
-  <!-- The name -->
-  <section class="section on-dark" aria-labelledby="name-heading">
-    <div class="container name-block" data-reveal>
-      <div>
-        <p class="eyebrow">Where the name comes from</p>
-        <p class="namemark" aria-label="Oddanchatram, with the letters ANCHATRA highlighted">
-          <span aria-hidden="true">Odd</span><strong aria-hidden="true">anchatra</strong><span aria-hidden="true">m</span>
-        </p>
-        <p class="namemark-note">Oddanchatram, Dindigul district, Tamil Nadu</p>
-      </div>
-      <div>
-        <h2 id="name-heading">Eight letters from the middle of home.</h2>
-        <p class="lede" style="margin-top:1.5rem">
-          Look inside the word Oddanchatram and you will find ANCHATRA. We chose it deliberately: wherever our products
-          travel, the name keeps the town at the centre of the business.
-        </p>
-      </div>
-    </div>
-  </section>
+  <!-- The name, played out on the scroll -->
+  <NameReveal />
 
   <!-- Founder + market relationships -->
   <section class="section" aria-labelledby="roots-heading">
@@ -117,6 +104,7 @@ import { site } from '../data/index.js';
       <div>
         <p class="eyebrow">How we want to work</p>
         <h2 id="work-heading">An emerging business, straightforward about where it stands.</h2>
+        <Globe />
       </div>
       <div class="prose">
         <p>
@@ -142,17 +130,11 @@ import { site } from '../data/index.js';
 </Base>
 
 <style>
-  .name-block {
-    display: grid;
-    gap: 3rem;
-    align-items: center;
-  }
   .work {
     display: grid;
     gap: 2.5rem;
   }
   @media (min-width: 54rem) {
-    .name-block,
     .work {
       grid-template-columns: 1fr 1fr;
       gap: 5rem;

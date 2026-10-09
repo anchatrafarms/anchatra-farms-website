@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import ProductTile from '../../components/ProductTile.astro';
 import ClosingCta from '../../components/ClosingCta.astro';
+import HeroArt from '../../components/HeroArt.astro';
 import Arrow from '../../components/Arrow.astro';
 import { categories, products } from '../../data/index.js';
 ---
@@ -11,6 +12,7 @@ import { categories, products } from '../../data/index.js';
   description="Browse the ANCHATRA FARMS catalogue: black garlic and moringa powder, plus fresh produce beginning with onions and tomatoes. Request a quotation for any product."
 >
   <section class="page-hero">
+    <HeroArt kind="products" />
     <div class="container">
       <p class="eyebrow">Our products</p>
       <h1>A small catalogue, chosen with care.</h1>

@@ -1,0 +1,178 @@
+---
+// The name device, played out on the scroll: ODDANCHATRAM arrives letter by letter, the outer
+// letters step back, and the eight letters of ANCHATRA are counted off and underlined.
+// The section pins while this happens (see [data-scrub] in Base.astro). Without JavaScript,
+// or with reduced motion, it shows the finished state.
+const parts = [
+  { text: 'Odd', core: false },
+  { text: 'anchatra', core: true },
+  { text: 'm', core: false },
+];
+let index = 0;
+let count = 0;
+const groups = parts.map((part) => ({
+  core: part.core,
+  letters: [...part.text].map((char) => ({ char, i: index++, n: part.core ? ++count : 0 })),
+}));
+---
+
+<section class="namereveal on-dark" data-scrub aria-labelledby="name-heading">
+  <div class="namereveal__stage">
+    <div class="container namereveal__inner">
+      <p class="eyebrow">Where the name comes from</p>
+      <p class="namereveal__word" aria-label="Oddanchatram, with the letters ANCHATRA highlighted">
+        {
+          groups.map((group) => (
+            <span class:list={['namereveal__group', group.core && 'namereveal__group--core']} aria-hidden="true">
+              {group.letters.map((letter) => (
+                <span class="namereveal__letter" style={`--i:${letter.i};--n:${letter.n}`} data-n={letter.n || undefined}>
+                  {letter.char}
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </p>
+      <p class="namereveal__note">Oddanchatram, Dindigul district, Tamil Nadu</p>
+      <h2 id="name-heading">Eight letters from the middle of home.</h2>
+      <p class="lede">
+        Look inside the word Oddanchatram and you will find ANCHATRA. We chose it deliberately: wherever our products
+        travel, the name keeps the town at the centre of the business.
+      </p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .namereveal {
+    --sweep: clamp(2rem, 5vw, 4.5rem);
+    border-radius: 0 100% 0 100% / 0 var(--sweep) 0 var(--sweep);
+    background: radial-gradient(52rem 30rem at 50% 42%, rgba(167, 181, 154, 0.16), transparent 65%), var(--green);
+  }
+  .namereveal__stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: var(--section);
+    border-radius: inherit;
+  }
+  /* Rings that open out behind the word, echoing the page-hero rings */
+  .namereveal__stage::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 42%;
+    width: min(120vw, 70rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, transparent 0 38px, rgba(246, 242, 233, 0.07) 38px 39px);
+    -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 68%);
+    mask-image: radial-gradient(circle, #000 15%, transparent 68%);
+    translate: -50% -50%;
+    transform: scale(calc(0.7 + var(--p) * 0.5));
+  }
+  .namereveal__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .namereveal__word {
+    display: flex;
+    margin: clamp(1rem, 4vh, 2.5rem) 0 0;
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: min(8vw, 7.2rem);
+    line-height: 1.1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .namereveal__group {
+    position: relative;
+    display: flex;
+  }
+  .namereveal__letter {
+    position: relative;
+    display: block;
+    /* --in: this letter's arrival · --dim: the outer letters stepping back · --hit: this letter being counted */
+    --in: clamp(0, (var(--p) - 0.02 - var(--i) * 0.013) / 0.07, 1);
+    --dim: clamp(0, (var(--p) - 0.3) / 0.12, 1);
+    --hit: clamp(0, (var(--p) - 0.34 - var(--n) * 0.03) / 0.05, 1);
+    opacity: calc(var(--in) * (1 - var(--dim) * 0.84));
+    transform: translateY(calc((1 - var(--in)) * 0.5em));
+    filter: blur(calc(var(--dim) * 0.014em));
+  }
+  .namereveal__group--core .namereveal__letter {
+    opacity: var(--in);
+    filter: none;
+    color: color-mix(in srgb, var(--sand) calc(var(--hit) * 100%), var(--ivory));
+    translate: 0 calc(sin(var(--hit) * 3.1416) * -0.14em); /* a small hop as it is counted */
+  }
+  /* 1 to 8 under the letters */
+  .namereveal__letter[data-n]::after {
+    content: attr(data-n);
+    position: absolute;
+    left: 0;
+    right: 0.06em; /* cancel the trailing letter-space so the figure sits under the letter */
+    top: calc(100% + 0.22em);
+    font: 600 max(0.13em, 0.62rem) / 1 var(--sans);
+    letter-spacing: 0;
+    text-align: center;
+    color: var(--sage);
+    opacity: var(--hit);
+  }
+  /* The rule under ANCHATRA draws across as the letters are counted */
+  .namereveal__group--core::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0.06em;
+    bottom: -0.02em;
+    height: max(2px, 0.03em);
+    background: var(--terracotta);
+    transform-origin: left;
+    transform: scaleX(clamp(0, (var(--p) - 0.36) / 0.26, 1));
+  }
+  .namereveal__note {
+    --t: clamp(0, (var(--p) - 0.16) / 0.1, 1);
+    margin: clamp(2rem, 5vh, 3rem) 0 0;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    color: var(--sage);
+    opacity: var(--t);
+  }
+  .namereveal h2,
+  .namereveal .lede {
+    --t: clamp(0, (var(--p) - var(--a)) / 0.14, 1);
+    opacity: var(--t);
+    transform: translateY(calc((1 - var(--t)) * 26px));
+  }
+  .namereveal h2 {
+    --a: 0.64;
+    margin-top: clamp(1.5rem, 4vh, 2.5rem);
+    font-size: clamp(1.7rem, 3.4vw, 2.9rem);
+  }
+  .namereveal .lede {
+    --a: 0.72;
+    margin-top: 1.1rem;
+  }
+
+  /* ── Pinned, scroll-driven version ────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .namereveal {
+      height: 270vh;
+    }
+    :global(.js) .namereveal__stage {
+      position: sticky;
+      top: 0;
+      display: grid;
+      align-items: center;
+      height: 100vh;
+      height: 100svh;
+      padding-block: 6rem 1.5rem;
+    }
+  }
+</style>

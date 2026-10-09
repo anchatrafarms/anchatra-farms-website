@@ -1,0 +1,126 @@
+---
+// A wireframe globe with routes reaching out from Oddanchatram. It draws itself as it scrolls
+// into view (see [data-scrub] in Base.astro). The route ends are deliberately unlabelled: this is
+// an illustration of outlook, not a list of destinations. Decorative only.
+const pin = [262, 196];
+const routes = [
+  { d: `M${pin} Q150 60 62 122`, end: [62, 122] },
+  { d: `M${pin} Q290 100 352 80`, end: [352, 80] },
+  { d: `M${pin} Q180 300 98 314`, end: [98, 314] },
+  { d: `M${pin} Q350 204 370 290`, end: [370, 290] },
+];
+const at = (a, b) => `--a:${a};--b:${b}`;
+---
+
+<div class="globe" data-scrub aria-hidden="true">
+  <svg viewBox="0 0 420 420" focusable="false">
+    <g class="globe__grid" transform="rotate(-16 210 210)">
+      <circle class="s-draw" pathLength="1" style={at(0, 0.4)} cx="210" cy="210" r="160"></circle>
+      <ellipse class="s-draw soft" pathLength="1" style={at(0.1, 0.45)} cx="210" cy="210" rx="110" ry="160"></ellipse>
+      <ellipse class="s-draw soft" pathLength="1" style={at(0.15, 0.5)} cx="210" cy="210" rx="55" ry="160"></ellipse>
+      <path class="s-draw soft" pathLength="1" style={at(0.2, 0.5)} d="M210 50 V370"></path>
+      <path class="s-draw soft" pathLength="1" style={at(0.2, 0.5)} d="M50 210 H370"></path>
+      <path class="s-draw soft" pathLength="1" style={at(0.25, 0.55)} d="M66 140 H354 M66 280 H354"></path>
+      <path class="s-draw soft" pathLength="1" style={at(0.3, 0.6)} d="M110 85 H310 M110 335 H310"></path>
+    </g>
+
+    {
+      routes.map((route, k) => (
+        <g>
+          <path class="s-draw globe__route" pathLength="1" style={at(0.45 + k * 0.08, 0.72 + k * 0.08)} d={route.d} />
+          <g class="s-pop" style={at(0.7 + k * 0.08, 0.8 + k * 0.08)}>
+            <circle class="globe__end" cx={route.end[0]} cy={route.end[1]} r="7" />
+          </g>
+          <circle class="globe__runner s-fade" style={at(0.8 + k * 0.05, 0.9 + k * 0.03)} r="3.5">
+            <animateMotion dur={`${3.4 + k * 0.7}s`} begin={`${k * 0.9}s`} repeatCount="indefinite" path={route.d} />
+          </circle>
+        </g>
+      ))
+    }
+
+    <g class="s-pop" style={at(0.36, 0.48)}>
+      <circle class="globe__pulse" cx={pin[0]} cy={pin[1]} r="16"></circle>
+      <circle class="globe__pin" cx={pin[0]} cy={pin[1]} r="8"></circle>
+    </g>
+    <g class="s-rise" style={at(0.4, 0.55)}>
+      <rect class="globe__chip" x="188" y="222" width="148" height="30" rx="15"></rect>
+      <text class="globe__label" x="262" y="242">Oddanchatram</text>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .globe {
+    max-width: 24rem;
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+  .globe svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .soft {
+    stroke: rgba(23, 63, 53, 0.3);
+    stroke-width: 1.5;
+  }
+  .globe__route {
+    stroke: var(--terracotta);
+    stroke-width: 2.5;
+  }
+  .globe__end {
+    fill: var(--ivory);
+    stroke: var(--terracotta);
+    stroke-width: 2.5;
+  }
+  .globe__runner {
+    fill: var(--terracotta-deep);
+    stroke: none;
+  }
+  .globe__pin {
+    fill: var(--terracotta-deep);
+    stroke: var(--ivory);
+    stroke-width: 3;
+  }
+  .globe__pulse {
+    fill: rgba(185, 101, 69, 0.25);
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pulse 2.6s ease-out infinite;
+  }
+  @keyframes pulse {
+    from {
+      transform: scale(0.5);
+      opacity: 1;
+    }
+    to {
+      transform: scale(1.9);
+      opacity: 0;
+    }
+  }
+  .globe__chip {
+    fill: var(--green);
+    stroke: none;
+  }
+  .globe__label {
+    fill: var(--ivory);
+    stroke: none;
+    text-anchor: middle;
+    font: 600 12px var(--sans);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .globe__pulse {
+      animation: none;
+    }
+    .globe__runner {
+      display: none;
+    }
+  }
+</style>

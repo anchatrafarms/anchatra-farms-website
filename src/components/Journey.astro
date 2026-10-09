@@ -4,6 +4,8 @@
 // Without JavaScript, or with reduced motion, it shows the finished drawing as a strip with the
 // five steps listed underneath.
 
+import { round, tree } from './art.js';
+
 // Wording here repeats commitments made elsewhere on the site. Confirmed information only.
 const chapters = [
   {
@@ -34,7 +36,6 @@ const chapters = [
 ];
 
 const two = (n) => String(n).padStart(2, '0');
-const round = (n) => Math.round(n * 10) / 10;
 
 // The scene is drawn in a 5400 × 600 box with the ground at y = 470. Each station is 960 wide.
 // STOPS are the points in the scroll (0–1) at which each station sits in the middle of the screen;
@@ -79,34 +80,7 @@ const clouds = [
 ];
 
 // ── Station 1: moringa trees ─────────────────────────────────────────────────
-const tree = (x, h) => {
-  const branches = [];
-  const leaves = [];
-  [
-    [0.45, -1, 0.5],
-    [0.6, 1, 0.55],
-    [0.75, -1, 0.42],
-    [0.88, 1, 0.4],
-    [1, -1, 0.3],
-    [1, 1, 0.28],
-  ].forEach(([f, dir, l]) => {
-    const y0 = 470 - h * f;
-    const len = h * l;
-    const x1 = x + dir * len;
-    const y1 = y0 - len * 0.45;
-    const cx = x + dir * len * 0.5;
-    const cy = y0 - len * 0.5;
-    branches.push(`M${x} ${round(y0)} Q${round(cx)} ${round(cy)} ${round(x1)} ${round(y1)}`);
-    for (let k = 1; k <= 4; k++) {
-      const t = k / 4;
-      const px = (1 - t) ** 2 * x + 2 * (1 - t) * t * cx + t * t * x1;
-      const py = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t * t * y1;
-      leaves.push([round(px), round(py - 8)], [round(px), round(py + 8)]);
-    }
-  });
-  return { trunk: `M${x} 470 C${x - 6} ${470 - h * 0.35} ${x + 8} ${470 - h * 0.7} ${x} ${470 - h}`, branches, leaves };
-};
-const trees = [tree(230, 220), tree(840, 160)];
+const trees = [tree(230, 470, 220), tree(840, 470, 160)];
 const sprouts = [360, 412, 464, 516, 568];
 
 // ── Station 2: market stalls ─────────────────────────────────────────────────

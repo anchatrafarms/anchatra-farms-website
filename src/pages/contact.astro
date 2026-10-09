@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Faq from '../components/Faq.astro';
 import Arrow from '../components/Arrow.astro';
+import HeroArt from '../components/HeroArt.astro';
 import { site, categories, productsIn, whatsappHref, locationLine } from '../data/index.js';
 
 const { contact, form, location } = site;
@@ -14,6 +15,7 @@ const isPreview = !form.endpoint;
   description="Request a quotation from ANCHATRA FARMS for black garlic, moringa powder, onions, tomatoes or other agricultural products. Tell us your product, quantity and destination."
 >
   <section class="page-hero">
+    <HeroArt kind="contact" />
     <div class="container">
       <p class="eyebrow">Contact · Request a quote</p>
       <h1>Tell us what your market needs.</h1>

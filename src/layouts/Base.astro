@@ -278,6 +278,70 @@ const organisation = {
             window.scrollTo({ top: atEnd ? 0 : top, behavior: reduceMotion ? 'auto' : 'smooth' });
           });
         }
+        // Scroll-scrubbed pieces: each [data-scrub] gets --p, from 0 to 1, as it is scrolled through.
+        // A pinned one (much taller than the screen) runs across its whole pin, starting half a screen
+        // early; a shorter one runs while it rises through the screen. --p glides towards the scroll.
+        var scrubs = Array.prototype.slice.call(document.querySelectorAll('[data-scrub]')).map(function (el) {
+          return { el: el, shown: 0, target: 0 };
+        });
+        if (scrubs.length && !reduceMotion) {
+          var scrubbing = false;
+          var measureScrub = function (el) {
+            var box = el.getBoundingClientRect();
+            var screen = window.innerHeight;
+            var pinned = box.height > screen * 1.2;
+            var done = pinned
+              ? (screen * 0.5 - box.top) / (box.height - screen * 0.5)
+              : (screen * 0.92 - box.top) / (screen * 0.62);
+            return Math.max(0, Math.min(done, 1));
+          };
+          var scrubStep = function () {
+            scrubbing = false;
+            scrubs.forEach(function (scrub) {
+              if (scrub.shown === scrub.target) return;
+              scrub.shown += (scrub.target - scrub.shown) * 0.14;
+              if (Math.abs(scrub.target - scrub.shown) < 0.0005) scrub.shown = scrub.target;
+              else scrubbing = true;
+              scrub.el.style.setProperty('--p', scrub.shown.toFixed(4));
+            });
+            if (scrubbing) requestAnimationFrame(scrubStep);
+          };
+          var onScrub = function () {
+            scrubs.forEach(function (scrub) {
+              scrub.target = measureScrub(scrub.el);
+            });
+            if (!scrubbing) {
+              scrubbing = true;
+              requestAnimationFrame(scrubStep);
+            }
+          };
+          scrubs.forEach(function (scrub) {
+            scrub.shown = scrub.target = measureScrub(scrub.el); // no glide on load
+            scrub.el.style.setProperty('--p', scrub.shown.toFixed(4));
+          });
+          window.addEventListener('scroll', onScrub, { passive: true });
+          window.addEventListener('resize', onScrub);
+        }
+
+        // Cards marked data-tilt lean towards the pointer, with a soft light under it
+        if (!reduceMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+          document.querySelectorAll('[data-tilt]').forEach(function (card) {
+            card.addEventListener('pointermove', function (event) {
+              var box = card.getBoundingClientRect();
+              var x = (event.clientX - box.left) / box.width;
+              var y = (event.clientY - box.top) / box.height;
+              card.style.setProperty('--ry', ((x - 0.5) * 7).toFixed(2) + 'deg');
+              card.style.setProperty('--rx', ((0.5 - y) * 7).toFixed(2) + 'deg');
+              card.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
+              card.style.setProperty('--my', (y * 100).toFixed(1) + '%');
+            });
+            card.addEventListener('pointerleave', function () {
+              card.style.removeProperty('--rx');
+              card.style.removeProperty('--ry');
+            });
+          });
+        }
+
         var items = document.querySelectorAll('[data-reveal]');
         var show = function (el) {
           el.classList.add('is-visible');

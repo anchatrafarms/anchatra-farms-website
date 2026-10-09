@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import Photo from '../components/Photo.astro';
 import Icon from '../components/Icon.astro';
 import ClosingCta from '../components/ClosingCta.astro';
+import HeroArt from '../components/HeroArt.astro';
 import { documents } from '../data/documents.js';
 
 const stages = [
@@ -35,6 +36,7 @@ const stages = [
   image="onions-market.jpg"
 >
   <section class="page-hero">
+    <HeroArt kind="sourcing" />
     <div class="container">
       <p class="eyebrow">Sourcing &amp; quality</p>
       <h1>Agreed clearly, before anything ships.</h1>

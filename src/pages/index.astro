@@ -4,6 +4,7 @@ import Photo from '../components/Photo.astro';
 import Arrow from '../components/Arrow.astro';
 import Icon from '../components/Icon.astro';
 import ClosingCta from '../components/ClosingCta.astro';
+import Journey from '../components/Journey.astro';
 import { site, categories, products, getProduct, getCategory, productHref } from '../data/index.js';
 
 // Hero slideshow: each slide pairs one product with a full-width background photograph.
@@ -249,6 +250,9 @@ const steps = [
       </div>
     </div>
   </section>
+
+  <!-- The export journey: a drawing that builds as the page scrolls -->
+  <Journey />
 
   <!-- F. How a buying enquiry works -->
   <section class="section section--deep" aria-labelledby="process-heading">

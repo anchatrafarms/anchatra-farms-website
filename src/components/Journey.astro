@@ -1,0 +1,967 @@
+---
+// Scroll-built journey: a line drawing that assembles itself as the page scrolls, from the fields
+// around Oddanchatram to a ship leaving port. The section pins while the scene pans sideways.
+// Without JavaScript, or with reduced motion, it shows the finished drawing as a strip with the
+// five steps listed underneath.
+
+// Wording here repeats commitments made elsewhere on the site. Confirmed information only.
+const chapters = [
+  {
+    label: 'Oddanchatram',
+    title: 'Rooted in Oddanchatram',
+    text: 'A market town in the Dindigul district of Tamil Nadu, and the place our name comes from.',
+  },
+  {
+    label: 'The market',
+    title: 'Sourced through people we know',
+    text: 'Sourcing begins with our founder’s personal relationships with shop owners in the Oddanchatram vegetable market.',
+  },
+  {
+    label: 'Packing',
+    title: 'Packed to your requirement',
+    text: 'Pack size, labelling and handling are discussed with you for each order.',
+  },
+  {
+    label: 'Paperwork',
+    title: 'Set out in writing',
+    text: 'Specification, packaging and the documents that apply are agreed before an order is confirmed.',
+  },
+  {
+    label: 'Dispatch',
+    title: 'On its way to you',
+    text: 'Once the order is confirmed, we follow the fulfilment arrangements agreed with you.',
+  },
+];
+
+const two = (n) => String(n).padStart(2, '0');
+const round = (n) => Math.round(n * 10) / 10;
+
+// The scene is drawn in a 5400 × 600 box with the ground at y = 470. Each station is 960 wide.
+// STOPS are the points in the scroll (0–1) at which each station sits in the middle of the screen;
+// a station builds during the stretch of scroll just before its stop.
+const STOPS = [0.16, 0.345, 0.53, 0.715, 0.9];
+const BUILD = 0.15;
+const stationX = (i) => i * 960;
+
+// Timing for one element: `from` and `to` are fractions (0–1) of its station's build window.
+const win = (i, from = 0, to = 1) => {
+  const start = STOPS[i] - BUILD;
+  return `--a:${(start + from * BUILD).toFixed(4)};--b:${(start + to * BUILD).toFixed(4)}`;
+};
+const draw = (i, from, to, extra = '') => ({ class: `d ${extra}`, pathLength: 1, style: win(i, from, to) });
+const rise = (i, from, to, extra = '') => ({ class: `r ${extra}`, style: win(i, from, to) });
+const grow = (i, from, to, extra = '') => ({ class: `g ${extra}`, style: win(i, from, to) });
+const fade = (i, from, to, extra = '') => ({ class: `f ${extra}`, style: win(i, from, to) });
+const pop = (i, from, to, extra = '') => ({ class: `p ${extra}`, style: win(i, from, to) });
+
+// ── Far ridge, running behind the whole scene ────────────────────────────────
+const ridgePoints = [];
+for (let x = -1600; x <= 7000; x += 200) {
+  ridgePoints.push([x, round(372 - 52 * Math.sin(x / 310) - 28 * Math.sin(x / 127 + 1))]);
+}
+const ridge =
+  `M-1600 470 L${ridgePoints[0].join(' ')} ` +
+  ridgePoints
+    .slice(1)
+    .map(([x, y], k) => {
+      const [px, py] = ridgePoints[k];
+      return `Q${px} ${py} ${(px + x) / 2} ${round((py + y) / 2)}`;
+    })
+    .join(' ') +
+  ' L7000 470 Z';
+const clouds = [
+  [140, 150, 1],
+  [1180, 96, 1.25],
+  [2050, 170, 0.9],
+  [2980, 104, 1.15],
+  [3760, 150, 1],
+  [4900, 110, 1.3],
+];
+
+// ── Station 1: moringa trees ─────────────────────────────────────────────────
+const tree = (x, h) => {
+  const branches = [];
+  const leaves = [];
+  [
+    [0.45, -1, 0.5],
+    [0.6, 1, 0.55],
+    [0.75, -1, 0.42],
+    [0.88, 1, 0.4],
+    [1, -1, 0.3],
+    [1, 1, 0.28],
+  ].forEach(([f, dir, l]) => {
+    const y0 = 470 - h * f;
+    const len = h * l;
+    const x1 = x + dir * len;
+    const y1 = y0 - len * 0.45;
+    const cx = x + dir * len * 0.5;
+    const cy = y0 - len * 0.5;
+    branches.push(`M${x} ${round(y0)} Q${round(cx)} ${round(cy)} ${round(x1)} ${round(y1)}`);
+    for (let k = 1; k <= 4; k++) {
+      const t = k / 4;
+      const px = (1 - t) ** 2 * x + 2 * (1 - t) * t * cx + t * t * x1;
+      const py = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t * t * y1;
+      leaves.push([round(px), round(py - 8)], [round(px), round(py + 8)]);
+    }
+  });
+  return { trunk: `M${x} 470 C${x - 6} ${470 - h * 0.35} ${x + 8} ${470 - h * 0.7} ${x} ${470 - h}`, branches, leaves };
+};
+const trees = [tree(230, 220), tree(840, 160)];
+const sprouts = [360, 412, 464, 516, 568];
+
+// ── Station 2: market stalls ─────────────────────────────────────────────────
+const stall = (x, wd, top, tone) => {
+  const n = 6;
+  const r = (wd + 28) / (2 * n);
+  const stripes = [];
+  for (let k = 1; k < n; k++) {
+    stripes.push(`M${round(x + 10 + (k * (wd - 20)) / n)} ${top} L${round(x - 14 + (k * (wd + 28)) / n)} ${top + 46}`);
+  }
+  const produce = [];
+  const count = Math.floor((wd - 40) / 26);
+  for (let k = 0; k < count; k++) produce.push([x + 26 + k * 26, 399]);
+  for (let k = 0; k < count - 1; k++) produce.push([x + 39 + k * 26, 379]);
+  return {
+    tone,
+    awning: `M${x - 14} ${top + 46} L${x + 10} ${top} H${x + wd - 10} L${x + wd + 14} ${top + 46} Z`,
+    scallops: `M${x - 14} ${top + 46} ` + Array.from({ length: n }, () => `a${round(r)} ${round(r)} 0 0 0 ${round(2 * r)} 0`).join(' '),
+    stripes: stripes.join(' '),
+    posts: `M${x + 12} ${top + 46} V412 M${x + wd - 12} ${top + 46} V412`,
+    counter: { x: x + 4, y: 412, width: wd - 8, height: 58 },
+    plank: `M${x + 4} 434 H${x + wd - 4}`,
+    produce,
+  };
+};
+const stalls = [stall(150, 210, 300, 'terra'), stall(385, 220, 262, 'sand'), stall(630, 210, 300, 'sage')];
+const baskets = [48, 868];
+
+// ── Station 3: cartons on a pallet ───────────────────────────────────────────
+const cartons = [
+  [300, 396], [388, 396], [476, 396], [564, 396],
+  [344, 334], [432, 334], [520, 334],
+  [388, 272], [476, 272],
+];
+
+// ── Station 5: containers, and the dotted route out to sea ───────────────────
+const containers = [
+  [230, 426, 'terra'], [334, 426, 'sage'],
+  [230, 382, 'sand'], [334, 382, 'terra'],
+  [230, 338, 'sage'],
+];
+const deck = [
+  [672, 396, 'sand'], [746, 396, 'terra'], [820, 396, 'sage'],
+  [709, 352, 'terra'], [783, 352, 'sand'],
+];
+const routeDots = Array.from({ length: 16 }, (_, k) => {
+  const t = (k + 1) / 17;
+  const b = (p0, p1, p2, p3) => (1 - t) ** 3 * p0 + 3 * (1 - t) ** 2 * t * p1 + 3 * (1 - t) * t * t * p2 + t ** 3 * p3;
+  return [round(b(980, 1090, 1330, 1500)), round(b(392, 190, 150, 262))];
+});
+const waves = (y) => `M440 ${y} q20 -9 40 0 ` + Array.from({ length: 44 }, () => 't40 0').join(' ');
+---
+
+<section class="journey on-dark" data-journey data-stops={JSON.stringify(STOPS)} aria-labelledby="journey-heading">
+  <div class="journey__stage">
+    <div class="container journey__head">
+      <p class="eyebrow">From Oddanchatram to your market</p>
+      <h2 id="journey-heading">An export journey, built <em>one clear step at a time.</em></h2>
+    </div>
+
+    <div class="journey__scene" aria-hidden="true">
+      <div class="journey__track" data-journey-track>
+        <svg class="art" viewBox="0 0 5400 600" data-journey-art focusable="false">
+          <defs>
+            <clipPath id="journey-sea"><rect x="600" y="440" width="2200" height="160"></rect></clipPath>
+          </defs>
+
+          <!-- Far layer: moves a little slower than the rest, for depth -->
+          <g class="far">
+            <path class="ridge" d={ridge}></path>
+            {
+              clouds.map(([x, y, s]) => (
+                <path
+                  class="cloud"
+                  transform={`translate(${x} ${y}) scale(${s})`}
+                  d="M0 30 q-22 -2 -20 -20 q2 -16 22 -12 q8 -24 36 -18 q14 -20 40 -6 q30 -6 34 22 q20 2 18 18 q-2 16 -22 16 Z"
+                />
+              ))
+            }
+          </g>
+
+          <!-- Ground, and the route that draws along it as the page scrolls -->
+          <path class="ground" d="M-1600 470 H4440"></path>
+          <path class="d route" pathLength="1" style={`--a:${STOPS[0]};--b:${STOPS[4]}`} d="M480 470 H4320"></path>
+
+          <!-- 1. Oddanchatram: hills, fields and moringa trees -->
+          <g transform={`translate(${stationX(0)} 0)`}>
+            <path {...draw(0, 0, 0.6, 'soft')} d="M30 470 C150 350 250 280 350 336 C430 244 560 226 660 318 C740 276 850 360 930 470"></path>
+            <circle class="glow" cx="700" cy="150" r="44" style={win(0, 0.2, 0.7)}></circle>
+            <circle {...draw(0, 0.15, 0.7)} cx="700" cy="150" r="44"></circle>
+            <path {...draw(0, 0.3, 0.75)} d="M606 470 V398 H716 V470 M592 404 L661 352 L730 404 M650 470 V430 H674 V470"></path>
+            {
+              trees.map((t, k) => (
+                <g>
+                  <path {...draw(0, 0.1 + k * 0.15, 0.6 + k * 0.15)} d={t.trunk} />
+                  {t.branches.map((d, b) => (
+                    <path {...draw(0, 0.3 + k * 0.15 + b * 0.04, 0.7 + k * 0.15 + b * 0.04, 'thin')} d={d} />
+                  ))}
+                  {t.leaves.map(([x, y], l) => (
+                    <ellipse {...pop(0, 0.45 + k * 0.12 + l * 0.006, 0.7 + k * 0.12 + l * 0.006, 'leaf')} cx={x} cy={y} rx="10" ry="5" />
+                  ))}
+                </g>
+              ))
+            }
+            {
+              sprouts.map((x, k) => (
+                <path
+                  {...grow(0, 0.5 + k * 0.07, 0.75 + k * 0.06, 'sprout')}
+                  d={`M${x} 470 v-24 M${x} 458 q-13 -2 -15 -15 M${x} 458 q13 -2 15 -15`}
+                />
+              ))
+            }
+          </g>
+
+          <!-- 2. The vegetable market -->
+          <g transform={`translate(${stationX(1)} 0)`}>
+            {
+              stalls.map((s, k) => (
+                <g>
+                  <path {...draw(1, 0.05 + k * 0.12, 0.4 + k * 0.12)} d={s.posts} />
+                  <rect {...draw(1, 0.1 + k * 0.12, 0.5 + k * 0.12, 'panel')} {...s.counter} rx="4" />
+                  <path {...draw(1, 0.2 + k * 0.12, 0.5 + k * 0.12, 'soft thin')} d={s.plank} />
+                  <g {...rise(1, 0.25 + k * 0.12, 0.55 + k * 0.12)}>
+                    <path class={`awning tone-${s.tone}`} d={s.awning} />
+                    <path class="thin soft" d={s.stripes} />
+                    <path d={s.scallops} />
+                  </g>
+                  {s.produce.map(([x, y], n) => (
+                    <circle {...pop(1, 0.5 + k * 0.1 + n * 0.012, 0.7 + k * 0.1 + n * 0.012, `dot tone-${s.tone}`)} cx={x} cy={y} r="11" />
+                  ))}
+                </g>
+              ))
+            }
+            {
+              baskets.map((x, k) => (
+                <g {...rise(1, 0.55 + k * 0.2, 0.8 + k * 0.2)}>
+                  <path class="dot tone-terra" d={`M${x + 4} 436 q31 -40 62 0 Z`} />
+                  <path class="panel" d={`M${x} 436 H${x + 70} L${x + 60} 470 H${x + 10} Z`} />
+                  <path class="thin soft" d={`M${x + 4} 448 H${x + 66} M${x + 7} 459 H${x + 63}`} />
+                </g>
+              ))
+            }
+          </g>
+
+          <!-- 3. Packing -->
+          <g transform={`translate(${stationX(2)} 0)`}>
+            <path {...draw(2, 0, 0.5)} d="M160 470 V254 M800 470 V254"></path>
+            <path {...draw(2, 0.15, 0.6)} d="M120 264 L480 172 L840 264"></path>
+            <path {...draw(2, 0.3, 0.7, 'soft thin')} d="M160 286 L480 204 L800 286"></path>
+            <rect {...draw(2, 0.2, 0.5, 'panel')} x="286" y="458" width="378" height="12" rx="3"></rect>
+            {
+              cartons.map(([x, y], k) => (
+                <g {...rise(2, 0.3 + k * 0.065, 0.48 + k * 0.065)}>
+                  <rect class="carton" x={x} y={y} width="86" height="62" rx="4" />
+                  <path class="thin soft" d={`M${x + 43} ${y} v18`} />
+                  <rect class="tag" x={x + 12} y={y + 34} width="30" height="16" rx="2" />
+                </g>
+              ))
+            }
+            <g {...rise(2, 0.6, 0.85)}>
+              <rect class="panel" x="690" y="452" width="92" height="18" rx="4"></rect>
+              <path d="M772 452 V384"></path>
+              <circle class="panel" cx="772" cy="368" r="17"></circle>
+              <path class="thin" d="M772 368 l7 -9"></path>
+              <path class="sack" d="M700 452 q-9 -40 10 -54 h36 q19 14 10 54 Z M712 398 q16 -12 32 0"></path>
+            </g>
+            <g {...rise(2, 0.7, 0.95)}>
+              <rect class="carton" x="186" y="408" width="78" height="62" rx="4"></rect>
+              <rect class="carton" x="194" y="350" width="62" height="58" rx="4"></rect>
+              <path class="thin soft" d="M225 408 v18 M225 350 v16"></path>
+            </g>
+          </g>
+
+          <!-- 4. Paperwork -->
+          <g transform={`translate(${stationX(3)} 0)`}>
+            <path {...fade(3, 0.1, 0.4, 'stem')} d="M480 398 V470"></path>
+            <rect {...draw(3, 0, 0.45, 'sheet-back')} x="370" y="118" width="220" height="280" rx="10" transform="rotate(5 480 258)"></rect>
+            <rect {...draw(3, 0.1, 0.55, 'sheet')} x="370" y="118" width="220" height="280" rx="10"></rect>
+            <path {...draw(3, 0.3, 0.5, 'bold')} d="M400 160 H500"></path>
+            {
+              [206, 246, 286].map((y, k) => (
+                <g>
+                  <path {...draw(3, 0.4 + k * 0.1, 0.6 + k * 0.1, 'soft')} d={`M440 ${y} H560`} />
+                  <path {...draw(3, 0.5 + k * 0.1, 0.68 + k * 0.1, 'tick')} d={`M398 ${y - 2} l8 9 l15 -18`} />
+                </g>
+              ))
+            }
+            <path {...draw(3, 0.75, 0.95, 'thin')} d="M400 356 q9 -24 18 0 t18 0 t18 0 t22 -8"></path>
+            <g {...pop(3, 0.8, 1)}>
+              <circle class="seal" cx="544" cy="344" r="31"></circle>
+              <circle class="thin seal-ring" cx="544" cy="344" r="22"></circle>
+              <path class="seal-tick" d="M533 344 l8 9 l14 -17"></path>
+            </g>
+            {
+              [
+                ['Specification', 96, 170],
+                ['Packaging', 632, 220],
+                ['Documents', 110, 300],
+              ].map(([text, x, y], k) => (
+                <g {...rise(3, 0.45 + k * 0.14, 0.7 + k * 0.14)}>
+                  <path class="thin soft" d={x < 480 ? `M${x + 218} ${y + 21} H370` : `M590 ${y + 21} H${x}`} />
+                  <rect class="chip" x={x} y={y} width="218" height="42" rx="21" />
+                  <text class="chip-text" x={x + 109} y={y + 28}>{text}</text>
+                </g>
+              ))
+            }
+          </g>
+
+          <!-- 5. Dispatch: quay, crane and ship -->
+          <g transform={`translate(${stationX(4)} 0)`}>
+            <path {...draw(4, 0, 0.3)} d="M600 470 V530"></path>
+            {
+              containers.map(([x, y, tone], k) => (
+                <g {...rise(4, 0.1 + k * 0.08, 0.3 + k * 0.08)}>
+                  <rect class={`box tone-${tone}`} x={x} y={y} width="100" height="44" rx="3" />
+                  <path class="thin soft" d={`M${x + 20} ${y + 7} v30 M${x + 40} ${y + 7} v30 M${x + 60} ${y + 7} v30 M${x + 80} ${y + 7} v30`} />
+                </g>
+              ))
+            }
+            <path {...draw(4, 0.15, 0.6)} d="M470 470 V200 M570 470 V200 M470 300 H570 M470 300 L570 200 M470 400 L570 300"></path>
+            <path {...draw(4, 0.4, 0.75)} d="M410 200 H800 M520 200 V146 L410 200 M520 146 L800 200"></path>
+            <g {...fade(4, 0.6, 0.75)}>
+              <rect class="panel" x="686" y="200" width="34" height="14" rx="3"></rect>
+              <g class="lower" style={win(4, 0.65, 1)}>
+                <path class="thin" d="M703 150 V300"></path>
+                <rect class="box tone-terra" x="656" y="300" width="94" height="40" rx="3"></rect>
+              </g>
+            </g>
+            <g {...rise(4, 0.35, 0.7)}>
+              <g class="bob">
+                <path class="hull" d="M630 440 H974 L944 506 H662 Z"></path>
+                <path class="thin soft" d="M650 462 H958"></path>
+                <path class="panel" d="M900 440 V378 H952 V440 M912 378 V352 H934 V378"></path>
+                <path class="thin soft" d="M912 396 h28 M912 412 h28"></path>
+                {deck.map(([x, y, tone]) => <rect class={`box tone-${tone}`} x={x} y={y} width="74" height="44" rx="3" />)}
+              </g>
+            </g>
+            <g clip-path="url(#journey-sea)">
+              <path {...fade(4, 0.2, 0.6, 'wave')} d={waves(506)}></path>
+              <path {...fade(4, 0.3, 0.7, 'wave wave--back')} d={waves(544)}></path>
+            </g>
+            {routeDots.map(([x, y], k) => <circle {...fade(4, 0.72 + k * 0.016, 0.8 + k * 0.016, 'route-dot')} cx={x} cy={y} r="4.5" />)}
+            <g {...pop(4, 0.94, 1)}>
+              <circle class="pin-ring" cx="1524" cy="282" r="26"></circle>
+              <circle class="pin" cx="1524" cy="282" r="10"></circle>
+            </g>
+          </g>
+
+          <!-- The truck carries the packed order from the pack house to the quay -->
+          <g class="f" style="--a:0.5;--b:0.54">
+            <g class="truck" style="--a:0.55;--b:0.87">
+              <rect class="carton" x="2620" y="386" width="124" height="66" rx="5"></rect>
+              <path class="thin soft" d="M2650 396 v46 M2682 396 v46 M2714 396 v46"></path>
+              <path class="cab" d="M2750 452 V408 H2780 L2802 432 V452 Z"></path>
+              <path class="thin" d="M2760 418 H2777 L2790 432 H2760 Z"></path>
+              <path d="M2614 453 H2806"></path>
+              {
+                [2652, 2772].map((x) => (
+                  <g class="wheel">
+                    <circle class="tyre" cx={x} cy="456" r="14" />
+                    <path class="thin" d={`M${x - 9} 456 h18 M${x} 447 v18`} />
+                  </g>
+                ))
+              }
+            </g>
+          </g>
+
+          <!-- A marker and a label on the route for each station -->
+          {
+            chapters.map((chapter, i) => (
+              <g {...fade(i, 0.55, 0.9)}>
+                <circle class="node" cx={stationX(i) + 480} cy="470" r="9" />
+                <text
+                  class:list={['label', i === chapters.length - 1 && 'label--end']}
+                  x={stationX(i) + (i === chapters.length - 1 ? 572 : 480)}
+                  y="532"
+                >
+                  {two(i + 1)} · {chapter.label}
+                </text>
+              </g>
+            ))
+          }
+        </svg>
+      </div>
+    </div>
+
+    <div class="container journey__foot">
+      <ol class="journey__captions">
+        {
+          chapters.map((chapter, i) => (
+            <li class:list={['journey__caption', i === 0 && 'is-active']} data-journey-caption>
+              <span class="journey__num" aria-hidden="true">{two(i + 1)}</span>
+              <h3>{chapter.title}</h3>
+              <p>{chapter.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+      <ol class="journey__tabs">
+        {
+          chapters.map((chapter, i) => (
+            <li>
+              <button
+                type="button"
+                class="journey__tab"
+                data-journey-tab
+                style={`--s:${(STOPS[i] - (STOPS[1] - STOPS[0]) / 2).toFixed(4)}`}
+                aria-label={`Step ${i + 1}: ${chapter.title}`}
+              >
+                <span class="journey__tab-bar" aria-hidden="true">
+                  <span class="journey__tab-fill" />
+                </span>
+                <span class="journey__tab-num" aria-hidden="true">{two(i + 1)}</span>
+                <span class="journey__tab-name" aria-hidden="true">{chapter.label}</span>
+              </button>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<script>
+  // One number drives the whole scene: --p, how far the section has been scrolled (0–1).
+  // Every drawn element works out its own state from --p in CSS; this script only sets it,
+  // pans the scene so the current station is centred, and switches the caption.
+  const section = document.querySelector<HTMLElement>('[data-journey]');
+  const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)');
+
+  if (section && motionOk.matches) {
+    const scene = section.querySelector<HTMLElement>('.journey__scene')!;
+    const track = section.querySelector<HTMLElement>('[data-journey-track]')!;
+    const art = section.querySelector<SVGElement>('[data-journey-art]')!;
+    const captions = [...section.querySelectorAll('[data-journey-caption]')];
+    const tabs = [...section.querySelectorAll<HTMLElement>('[data-journey-tab]')];
+    const stops: number[] = JSON.parse(section.dataset.stops || '[]');
+    const first = stops[0];
+    const span = stops[stops.length - 1] - first;
+    const clamp = (n: number) => Math.max(0, Math.min(n, 1));
+
+    let target = 0;
+    let shown = -1;
+    let active = -1;
+    let looping = false;
+
+    // The scene starts building while the section is still arriving, 60% of a screen early
+    const lead = () => window.innerHeight * 0.6;
+    const travel = () => section.offsetHeight - window.innerHeight + lead();
+    const measure = () => clamp((lead() - section.getBoundingClientRect().top) / travel());
+
+    const render = () => {
+      const scale = art.clientHeight / 600;
+      // After the last stop the view carries on a little, out over the water with the ship
+      const centre =
+        480 +
+        clamp((shown - first) / span) * 960 * (stops.length - 1) +
+        clamp((shown - first - span) / (1 - first - span)) * 250;
+      section.style.setProperty('--p', shown.toFixed(4));
+      track.style.transform = `translate3d(${(scene.clientWidth / 2 - centre * scale).toFixed(1)}px,0,0)`;
+
+      const index = Math.round(clamp((shown - first) / span) * (stops.length - 1));
+      if (index !== active) {
+        active = index;
+        captions.forEach((caption, i) => caption.classList.toggle('is-active', i === index));
+        tabs.forEach((tab, i) => {
+          if (i === index) tab.setAttribute('aria-current', 'step');
+          else tab.removeAttribute('aria-current');
+        });
+      }
+    };
+
+    // Ease towards the scroll position so the drawing glides instead of ticking with the wheel
+    const step = () => {
+      shown += (target - shown) * 0.14;
+      if (Math.abs(target - shown) < 0.0004) {
+        shown = target;
+        looping = false;
+      } else {
+        requestAnimationFrame(step);
+      }
+      render();
+    };
+
+    const onMove = () => {
+      target = measure();
+      if (!looping) {
+        looping = true;
+        requestAnimationFrame(step);
+      }
+    };
+
+    tabs.forEach((tab, i) =>
+      tab.addEventListener('click', () => {
+        const top = section.getBoundingClientRect().top + window.scrollY;
+        window.scrollTo({ top: top + stops[i] * travel() - lead() + 2, behavior: 'smooth' });
+      }),
+    );
+
+    window.addEventListener('scroll', onMove, { passive: true });
+    window.addEventListener('resize', () => {
+      onMove();
+      render();
+    });
+    shown = target = measure(); // no glide on load: start wherever the page already is
+    render();
+  }
+</script>
+
+<style>
+  .journey {
+    --p: 1; /* finished drawing unless the script is driving it */
+    --ink: var(--sand);
+    --ink-soft: rgba(246, 242, 233, 0.4);
+    position: relative;
+    background:
+      radial-gradient(60rem 30rem at 12% 0%, rgba(167, 181, 154, 0.14), transparent 62%),
+      radial-gradient(50rem 26rem at 100% 100%, rgba(185, 101, 69, 0.2), transparent 62%), var(--green-deep);
+  }
+  .journey__stage {
+    padding-block: var(--section);
+  }
+  .journey__head h2 {
+    max-width: 18ch;
+  }
+
+  /* ── The drawing ──────────────────────────────────────────────────────── */
+  .journey__scene {
+    height: clamp(15rem, 44vw, 22rem);
+    margin-block: clamp(2rem, 5vw, 3.5rem);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .journey__track {
+    height: 100%;
+    width: max-content;
+  }
+  .art {
+    display: block;
+    height: 100%;
+    width: auto;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Each animated element has a start (--a) and an end (--b) on the scroll; --t is its own 0–1 */
+  .d,
+  .r,
+  .g,
+  .f,
+  .p,
+  .glow,
+  .lower,
+  .truck {
+    --t: clamp(0, (var(--p) - var(--a)) / (var(--b) - var(--a)), 1);
+  }
+  /* d: a line that draws itself */
+  .d {
+    stroke-dasharray: 1;
+    stroke-dashoffset: calc(1 - var(--t));
+    opacity: calc(var(--t) * 14);
+  }
+  /* r: rises into place */
+  .r {
+    opacity: calc(var(--t) * 1.6);
+    transform: translateY(calc((1 - var(--t)) * 54px));
+  }
+  /* g: grows up out of the ground */
+  .g {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: scaleY(var(--t));
+  }
+  /* f: fades in */
+  .f {
+    opacity: var(--t);
+  }
+  /* p: pops out from its own centre */
+  .p {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(var(--t));
+  }
+
+  .soft {
+    stroke: var(--ink-soft);
+  }
+  .thin {
+    stroke-width: 2;
+  }
+  .bold {
+    stroke-width: 5;
+  }
+  .far {
+    transform: translateX(calc(var(--p) * 520px));
+  }
+  .ridge {
+    fill: rgba(167, 181, 154, 0.08);
+    stroke: none;
+  }
+  .cloud {
+    stroke: rgba(246, 242, 233, 0.16);
+    stroke-width: 2;
+  }
+  .ground {
+    stroke: rgba(246, 242, 233, 0.2);
+    stroke-width: 2;
+  }
+  .route {
+    stroke: var(--terracotta);
+    stroke-width: 4;
+  }
+  .glow {
+    fill: var(--sand);
+    stroke: none;
+    opacity: calc(var(--t) * 0.16);
+  }
+  .leaf {
+    fill: var(--sage);
+    stroke: none;
+  }
+  .sprout {
+    stroke: var(--sage);
+  }
+  .panel,
+  .carton,
+  .hull,
+  .cab {
+    fill: var(--green-deep);
+  }
+  .awning,
+  .box,
+  .dot {
+    --tone: var(--sand);
+  }
+  .tone-terra {
+    --tone: var(--terracotta);
+  }
+  .tone-sage {
+    --tone: var(--sage);
+  }
+  .awning,
+  .box {
+    fill: color-mix(in srgb, var(--tone) 34%, var(--green-deep));
+  }
+  .dot {
+    fill: var(--tone);
+    stroke: var(--green-deep);
+    stroke-width: 2;
+  }
+  .tag {
+    fill: rgba(230, 199, 156, 0.3);
+    stroke: none;
+  }
+  .sack {
+    fill: color-mix(in srgb, var(--sand) 26%, var(--green-deep));
+  }
+  .stem {
+    stroke: var(--ink-soft);
+    stroke-width: 2;
+    stroke-dasharray: 3 9;
+  }
+  .sheet {
+    fill: #16392f;
+  }
+  .sheet-back {
+    stroke: var(--ink-soft);
+  }
+  .tick,
+  .seal-ring {
+    stroke: var(--sage);
+  }
+  .seal {
+    fill: var(--terracotta);
+    stroke: none;
+  }
+  .seal-ring,
+  .seal-tick {
+    stroke: var(--ivory);
+  }
+  .chip {
+    fill: var(--green-deep);
+    stroke: var(--ink-soft);
+    stroke-width: 2;
+  }
+  .chip-text,
+  .label {
+    stroke: none;
+    text-anchor: middle;
+    font-family: var(--sans);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .chip-text {
+    fill: var(--ivory);
+    font-size: 19px;
+    letter-spacing: 0.16em;
+  }
+  .label {
+    fill: var(--sage);
+    font-size: 23px;
+    letter-spacing: 0.2em;
+  }
+  .label--end {
+    text-anchor: end; /* the last label stops short of the quay edge */
+  }
+  .node {
+    fill: var(--green-deep);
+    stroke: var(--sand);
+  }
+  .wave {
+    stroke: var(--sage);
+    stroke-width: 2.5;
+    animation: tide 3.6s linear infinite;
+  }
+  .wave--back {
+    stroke: var(--ink-soft);
+    animation-duration: 5.4s;
+  }
+  @keyframes tide {
+    to {
+      transform: translateX(-80px);
+    }
+  }
+  .bob {
+    animation: bob 4.5s ease-in-out infinite alternate;
+  }
+  @keyframes bob {
+    from {
+      transform: translateY(-3px);
+    }
+    to {
+      transform: translateY(4px);
+    }
+  }
+  /* The crane lowers its container towards the deck */
+  .lower {
+    transform: translateY(calc((var(--t) - 1) * 70px));
+  }
+  .route-dot {
+    fill: var(--sand);
+    stroke: none;
+  }
+  .pin {
+    fill: var(--terracotta);
+    stroke: var(--ivory);
+  }
+  .pin-ring {
+    stroke: var(--terracotta);
+    stroke-width: 2;
+    opacity: 0.6;
+  }
+  .truck {
+    transform: translateX(calc(var(--t) * 1215px));
+  }
+  .tyre {
+    fill: var(--green-deep);
+  }
+  .wheel {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: rotate(calc(var(--t) * 5200deg));
+  }
+
+  /* ── Captions ─────────────────────────────────────────────────────────── */
+  .journey__captions {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+  }
+  @media (min-width: 40rem) {
+    .journey__captions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .journey__captions {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+  }
+  .journey__num {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    color: var(--sand);
+  }
+  .journey__caption h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(1.3rem, 1.9vw, 1.6rem);
+    line-height: 1.15;
+  }
+  .journey__caption p {
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: rgba(246, 242, 233, 0.76);
+  }
+  .journey__tabs {
+    display: none;
+  }
+
+  /* ── Pinned, scroll-driven version ────────────────────────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.js) .journey {
+      height: 520vh;
+    }
+    :global(.js) .journey__stage {
+      position: sticky;
+      top: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      height: 100vh;
+      height: 100svh;
+      padding-block: clamp(5.75rem, 13vh, 7.5rem) clamp(1rem, 3.5vh, 2.25rem);
+      overflow: hidden;
+    }
+    :global(.js) .journey__head h2 {
+      max-width: none;
+      font-size: clamp(1.6rem, 1rem + 2.4vw, 2.9rem);
+    }
+    :global(.js) .journey__head .eyebrow {
+      margin-bottom: 0.75rem;
+    }
+    :global(.js) .journey__scene {
+      position: relative;
+      height: auto;
+      min-height: 0;
+      margin-block: clamp(0.5rem, 2vh, 1.5rem);
+      overflow: visible;
+    }
+    :global(.js) .journey__track {
+      position: absolute;
+      left: 0;
+      top: 0;
+      will-change: transform;
+    }
+    :global(.js) .art {
+      overflow: visible;
+    }
+
+    :global(.js) .journey__foot {
+      display: grid;
+      gap: clamp(0.9rem, 2.5vh, 1.5rem);
+    }
+    /* Captions share one cell; only the current one shows */
+    :global(.js) .journey__captions {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+    :global(.js) .journey__caption {
+      grid-area: 1 / 1;
+      max-width: 34rem;
+      opacity: 0;
+      transform: translateY(14px);
+      visibility: hidden;
+      transition:
+        opacity 0.45s var(--ease),
+        transform 0.45s var(--ease),
+        visibility 0.45s;
+    }
+    :global(.js) .journey__caption.is-active {
+      opacity: 1;
+      transform: none;
+      visibility: visible;
+      transition-delay: 0.12s;
+    }
+    :global(.js) .journey__caption h3 {
+      font-size: clamp(1.45rem, 1rem + 1.6vw, 2.15rem);
+    }
+    :global(.js) .journey__caption p {
+      font-size: clamp(0.95rem, 1.3vw, 1.08rem);
+    }
+
+    :global(.js) .journey__tabs {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      column-gap: clamp(0.4rem, 1.4vw, 1.25rem);
+    }
+    /* The step bars sit directly under the drawing, clear of the floating enquiry button */
+    :global(.js) .journey__tabs {
+      order: -1;
+    }
+    :global(.js) .journey__captions {
+      min-height: 9.5rem;
+      align-items: start;
+    }
+  }
+  .journey__tab {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.85rem 0 0.25rem;
+    border: 0;
+    background: none;
+    color: var(--ivory);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.35s var(--ease);
+  }
+  .journey__tab:hover,
+  .journey__tab[aria-current] {
+    opacity: 1;
+  }
+  .journey__tab-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: var(--line-light);
+    overflow: hidden;
+  }
+  /* Fills across the stretch of scroll that belongs to its step */
+  .journey__tab-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--sand);
+    transform-origin: left;
+    transform: scaleX(clamp(0, (var(--p) - var(--s)) / 0.185, 1));
+  }
+  .journey__tab-num {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--sand);
+  }
+  .journey__tab-name {
+    display: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (min-width: 40rem) {
+    .journey__tab-name {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wave,
+    .bob {
+      animation: none;
+    }
+  }
+</style>

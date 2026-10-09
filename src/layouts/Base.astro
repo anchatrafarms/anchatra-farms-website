@@ -13,7 +13,8 @@ const { title, description = site.description, image = 'black-garlic-bulbs.jpg',
 
 const fullTitle = title ? `${title} | ${site.name}` : `${site.name} — ${site.tagline}`;
 const whatsapp = whatsappHref();
-const showFab = !Astro.url.pathname.startsWith('/contact');
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const showFab = !Astro.url.pathname.slice(base.length).startsWith('/contact');
 const canonical = site.url ? new URL(Astro.url.pathname, site.url).href : undefined;
 const socialImage = site.url ? new URL(getImage(image).src, site.url).href : undefined;
 

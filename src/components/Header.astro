@@ -4,7 +4,8 @@ import Roller from './Roller.astro';
 import { site } from '../data/index.js';
 
 const { roller = 'onion' } = Astro.props;
-const path = Astro.url.pathname.replace(/\/?$/, '/');
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const path = Astro.url.pathname.slice(base.length).replace(/\/?$/, '/');
 const isCurrent = (href) => (href === '/' ? path === '/' : path.startsWith(href));
 ---
 

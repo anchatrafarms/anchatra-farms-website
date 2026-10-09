@@ -3,6 +3,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const base = ((await import('../astro.config.mjs')).default.base || '').replace(/\/$/, ''); // sub-folder the site is served from
 const dist = fileURLToPath(new URL('../dist/', import.meta.url)); // copes with spaces in the folder path
 const walk = (dir) => readdirSync(dir).flatMap((name) => {
   const path = join(dir, name);
@@ -18,7 +19,11 @@ for (const file of walk(dist)) {
   for (const ref of refs) {
     if (!ref.startsWith('/')) continue; // external, mailto:, #anchors
     const [path, hash] = ref.split('?')[0].split('#');
-    const cleanPath = decodeURIComponent(path.split('#')[0]);
+    if (base && path !== base && !path.startsWith(`${base}/`)) {
+      problems.push(`${file}: ${ref} is missing the base path ${base}`);
+      continue;
+    }
+    const cleanPath = decodeURIComponent(path.slice(base.length).split('#')[0]) || '/';
     const target = cleanPath.endsWith('/') ? join(dist, cleanPath, 'index.html') : join(dist, cleanPath);
     checked += 1;
     if (!existsSync(target)) problems.push(`${file}: missing ${ref}`);

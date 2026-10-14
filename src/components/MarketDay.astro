@@ -1,0 +1,1122 @@
+---
+// Our hometown market, in three parts: the market in figures, a day of auctions told on a clock
+// (the sun crosses the sky and the stall for each auction lights up), and a map of the towns its
+// buyers carry produce to. Figures and auction hours come from published market profiles and are
+// indicative. Without JavaScript every auction is listed and the routes are drawn in full.
+import { round } from './art.js';
+import Arrow from './Arrow.astro';
+
+// Sources: TNAU Agritech market profile, Ottanchatram (2013); Business Today (2008).
+const figures = [
+  { value: 1000, suffix: '+', unit: 'tonnes', text: 'of vegetables through the market on a typical day' },
+  { value: 500, suffix: '+', unit: 'buyers', text: 'trading here, from across Tamil Nadu and Kerala' },
+  { value: 136, unit: 'shops', text: 'on a market ground of about five acres' },
+  { value: 3000, unit: 'hectares', text: 'of vegetable farms within 20 km of the town' },
+];
+
+// Auction hours as listed in the TNAU market profile. `hour` places the sun on the clock.
+const auctions = [
+  {
+    time: '7 am',
+    hour: 7,
+    name: 'Onions',
+    produce: 'onion',
+    text: 'The day opens with the onion auction — small onions and big Bellary onions, sold while the morning is still cool.',
+  },
+  {
+    time: '8 am',
+    hour: 9,
+    name: 'Tomatoes',
+    produce: 'tomato',
+    text: 'Tomatoes follow, packed into 14 kg wooden crates as each lot is sold.',
+  },
+  {
+    time: '4 pm',
+    hour: 16,
+    name: 'Vegetables',
+    produce: 'veg',
+    text: 'In the afternoon the rest of the harvest arrives from the farms around the town: drumsticks, brinjal, ladies finger, cauliflower and more, in gunny bags.',
+  },
+  {
+    time: '8 pm',
+    hour: 20,
+    name: 'Chillies',
+    produce: 'chilli',
+    text: 'Chillies close the day, and buyers load up for towns across Tamil Nadu and over the hills into Kerala.',
+  },
+];
+
+// ── Clock: the sun's path, 5 am on the left to 9 pm on the right ─────────────
+const sunAt = (hour) => {
+  const a = Math.PI * (1 - (hour - 5) / 16);
+  return [round(360 + 290 * Math.cos(a)), round(170 - 150 * Math.sin(a))];
+};
+const hourTicks = [9, 12, 15, 18].map((h) => ({ h, at: sunAt(h) }));
+
+// ── Clock: four stalls, one for each auction ─────────────────────────────────
+const STALL_W = 110;
+const stallX = [30, 160, 290, 420];
+const pile = (x, kind) => {
+  const items = [];
+  const rows = [
+    [5, 222],
+    [4, 209],
+    [3, 196],
+  ];
+  rows.forEach(([n, y], row) => {
+    for (let k = 0; k < n; k++) {
+      const cx = x + STALL_W / 2 - (n - 1) * 8 + k * 16;
+      items.push({ cx, cy: y, row, k });
+    }
+  });
+  return { kind, items };
+};
+const piles = auctions.map((auction, i) => pile(stallX[i], auction.produce));
+
+// ── Map: towns the market's buyers come from (TNAU 2013), placed by latitude and longitude ──
+const S = 175;
+const COS = Math.cos((10.5 * Math.PI) / 180);
+const place = (lon, lat) => [round(40 + (lon - 76) * COS * S), round(30 + (11.3 - lat) * S)];
+const hub = place(77.75, 10.49);
+const towns = [
+  { name: 'Palani', lon: 77.52, lat: 10.45, state: 'tn', side: 'left', quiet: true },
+  { name: 'Dindigul', lon: 77.98, lat: 10.36, state: 'tn' },
+  { name: 'Madurai', lon: 78.12, lat: 9.93, state: 'tn' },
+  { name: 'Kumbakonam', lon: 79.38, lat: 10.96, state: 'tn', side: 'left' },
+  { name: 'Coimbatore', lon: 76.96, lat: 11.02, state: 'tn' },
+  { name: 'Pollachi', lon: 77.01, lat: 10.66, state: 'tn', side: 'left', quiet: true },
+  { name: 'Udumalpet', lon: 77.25, lat: 10.59, state: 'tn', side: 'above', quiet: true },
+  { name: 'Kovilpatti', lon: 77.87, lat: 9.17, state: 'tn' },
+  { name: 'Thoothukudi', lon: 78.13, lat: 8.76, state: 'tn', port: true },
+  { name: 'Palakkad', lon: 76.65, lat: 10.78, state: 'kl', side: 'left' },
+  { name: 'Thrissur', lon: 76.21, lat: 10.52, state: 'kl' },
+  { name: 'Kochi', lon: 76.27, lat: 9.93, state: 'kl', port: true },
+].map((town) => {
+  const [x, y] = place(town.lon, town.lat);
+  // A gentle arc from the market, bowed to one side
+  const mx = (hub[0] + x) / 2;
+  const my = (hub[1] + y) / 2;
+  const dx = x - hub[0];
+  const dy = y - hub[1];
+  const bow = 0.18;
+  const route = `M${hub[0]} ${hub[1]} Q${round(mx - dy * bow)} ${round(my + dx * bow)} ${x} ${y}`;
+  const km = Math.round(Math.hypot((town.lon - 77.75) * COS * 111, (town.lat - 10.49) * 111));
+  return { ...town, x, y, route, km };
+});
+const KM = S / 111;
+const rings = [50, 100, 150, 200].map((km) => ({ km, r: round(km * KM) }));
+const kerala = towns.filter((town) => town.state === 'kl');
+const tamilNadu = towns.filter((town) => town.state === 'tn');
+---
+
+<section class="section market" aria-labelledby="market-heading" data-market>
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow">Our hometown market</p>
+        <h2 id="market-heading">Oddanchatram, the <em>Vegetable City</em> of Tamil Nadu.</h2>
+      </div>
+      <p class="lede">
+        The town's Gandhi Market is one of the state's largest wholesale vegetable markets. Farmers from the
+        surrounding villages sell here directly, and from here the harvest moves across South India. It is the
+        market we have grown up with, and where our sourcing begins.
+      </p>
+    </div>
+
+    <ul class="market__figures" role="list">
+      {
+        figures.map((figure) => (
+          <li data-reveal>
+            <p class="market__number">
+              <span data-count={figure.value}>{figure.value.toLocaleString('en-IN')}</span>
+              {figure.suffix}
+            </p>
+            <p class="market__unit">{figure.unit}</p>
+            <p class="market__text">{figure.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="market__panels">
+      <!-- A day at the market -->
+      <figure class="market__panel clock" data-clock data-reveal>
+        <figcaption class="market__panel-head">
+          <p class="market__kicker">A day at the market</p>
+          <p class="market__hint" aria-hidden="true">Tap a time to follow the auctions</p>
+        </figcaption>
+
+        <div class="clock__scene">
+          <svg class="clock__art" viewBox="0 0 720 300" aria-hidden="true" focusable="false">
+            <path class="clock__path" d={`M${sunAt(5).join(' ')} A290 150 0 0 1 ${sunAt(21).join(' ')}`} />
+            {
+              hourTicks.map(({ h, at }) => (
+                <g class="clock__tick">
+                  <circle cx={at[0]} cy={at[1]} r="2.5" />
+                  <text x={at[0]} y={at[1] - 12}>
+                    {h === 12 ? 'noon' : h < 12 ? `${h} am` : `${h - 12} pm`}
+                  </text>
+                </g>
+              ))
+            }
+            <g class="clock__sun" data-clock-sun style={`transform: translate(${sunAt(7)[0]}px, ${sunAt(7)[1]}px)`}>
+              <g class="clock__rays">
+                {Array.from({ length: 8 }, (_, k) => (
+                  <path d="M0 -24 V-32" transform={`rotate(${k * 45})`} />
+                ))}
+              </g>
+              <circle class="clock__disc" r="17" />
+              <path class="clock__moon" d="M6 -16 A17 17 0 1 0 6 16 A13 13 0 1 1 6 -16 Z" />
+            </g>
+
+            <path class="clock__ground" d="M0 270 H720" />
+            {
+              stallX.map((x, i) => (
+                <g class={`stall stall--${auctions[i].produce}`} data-clock-stall>
+                  <path
+                    class="stall__awning"
+                    d={`M${x - 8} 168 L${x + 8} 140 H${x + STALL_W - 8} L${x + STALL_W + 8} 168 Z`}
+                  />
+                  <path
+                    class="stall__scallop"
+                    d={`M${x - 8} 168 ` +
+                      Array.from({ length: 4 }, () => `a${round((STALL_W + 16) / 8)} 7 0 0 0 ${round((STALL_W + 16) / 4)} 0`).join(' ')}
+                  />
+                  <path class="stall__posts" d={`M${x + 8} 172 V230 M${x + STALL_W - 8} 172 V230`} />
+                  <rect class="stall__counter" x={x} y="230" width={STALL_W} height="40" rx="3" />
+                  <g class="pile">
+                    {piles[i].items.map(({ cx, cy, row, k }) => {
+                      const kind = piles[i].kind;
+                      if (kind === 'onion')
+                        return (
+                          <g class="pile__item">
+                            <circle class="fill-onion" cx={cx} cy={cy} r="7.5" />
+                            <path class="pile__line" d={`M${cx} ${cy - 7} q1 -4 3 -6`} />
+                          </g>
+                        );
+                      if (kind === 'tomato')
+                        return (
+                          <g class="pile__item">
+                            <circle class="fill-tomato" cx={cx} cy={cy} r="7.5" />
+                            <path class="pile__calyx" d={`M${cx - 3} ${cy - 6} l3 2 l3 -2`} />
+                          </g>
+                        );
+                      if (kind === 'veg')
+                        return row === 0 ? (
+                          <ellipse class="pile__item fill-brinjal" cx={cx} cy={cy} rx="7.5" ry="6" />
+                        ) : (
+                          <path class="pile__item pile__drumstick" d={`M${cx - 9} ${cy + 4} L${cx + 9} ${cy - 4}`} />
+                        );
+                      return (
+                        <path
+                          class={`pile__item pile__chilli ${(row + k) % 3 === 0 ? 'is-green' : ''}`}
+                          d={`M${cx - 6} ${cy - 2} q6 8 12 1`}
+                        />
+                      );
+                    })}
+                  </g>
+                </g>
+              ))
+            }
+
+            <!-- The lorry leaves with the evening load -->
+            <g class="lorry" data-clock-lorry>
+              <path class="lorry__body" d="M570 214 H650 V258 H570 Z M650 226 H676 L690 242 V258 H650 Z" />
+              <path class="lorry__line" d="M656 230 H672 L682 242 H656 Z" />
+              <circle class="lorry__wheel" cx="592" cy="262" r="9" />
+              <circle class="lorry__wheel" cx="668" cy="262" r="9" />
+              <path class="lorry__load" d="M576 214 q10 -14 22 -2 q10 -14 22 -2 q10 -14 22 -2" />
+            </g>
+          </svg>
+        </div>
+
+        <ol class="clock__times" role="list">
+          {
+            auctions.map((auction, i) => (
+              <li class={`clock__step ${i === 0 ? 'is-active' : ''}`} data-clock-step data-hour={auction.hour}>
+                <button type="button" class="clock__button" aria-pressed={i === 0 ? 'true' : 'false'}>
+                  <span class="clock__time">{auction.time}</span>
+                  <span class="clock__name">{auction.name}</span>
+                </button>
+                <p class="clock__text">{auction.text}</p>
+              </li>
+            ))
+          }
+        </ol>
+      </figure>
+
+      <!-- Where the produce goes -->
+      <figure class="market__panel routes" data-routes data-reveal>
+        <figcaption class="market__panel-head">
+          <p class="market__kicker">Where the lorries go</p>
+          <p class="market__hint" aria-hidden="true">Hover a town to trace its route</p>
+        </figcaption>
+
+        <svg class="routes__map" viewBox="0 0 660 500" role="img" aria-labelledby="routes-title">
+          <title id="routes-title">
+            Map of the towns that buyers at the Oddanchatram market come from, across Tamil Nadu and Kerala, with the
+            seaports at Kochi and Thoothukudi.
+          </title>
+          <defs>
+            <radialGradient id="routes-fade">
+              <stop offset="0.55" stop-color="#fff" />
+              <stop offset="1" stop-color="#fff" stop-opacity="0" />
+            </radialGradient>
+            <mask id="routes-mask">
+              <circle cx={hub[0]} cy={hub[1]} r="420" fill="url(#routes-fade)" />
+            </mask>
+          </defs>
+          <text class="routes__region" x="70" y="300">Kerala</text>
+          <text class="routes__region" x="440" y="150">Tamil Nadu</text>
+          <text class="routes__sea" x="30" y="470">Arabian Sea</text>
+          <g mask="url(#routes-mask)">
+            {
+              rings.map(({ km, r }) => (
+                <g class="routes__ring">
+                  <circle cx={hub[0]} cy={hub[1]} r={r} />
+                  <text x={hub[0] + 4} y={hub[1] - r - 4}>{km} km</text>
+                </g>
+              ))
+            }
+          </g>
+          {
+            towns.map((town, i) => (
+              <path
+                class={`routes__route routes__route--${town.state}`}
+                d={town.route}
+                pathLength="1"
+                id={`route-${i}`}
+                data-route={town.name}
+                style={`--i:${i}`}
+              />
+            ))
+          }
+          {
+            towns.map((town) => (
+              <g class={`routes__town routes__town--${town.state} ${town.quiet ? 'is-quiet' : ''}`} data-town={town.name}>
+                {town.port ? (
+                  <g class="routes__port" transform={`translate(${town.x} ${town.y})`}>
+                    <circle r="11" />
+                    <path d="M0 -6 V6 M-5 1 a5 5 0 0 0 10 0 M-3 -3 H3" />
+                  </g>
+                ) : (
+                  <circle cx={town.x} cy={town.y} r="4.5" />
+                )}
+                <text
+                  x={town.side === 'left' ? town.x - 9 : town.side === 'above' ? town.x : town.x + (town.port ? 16 : 9)}
+                  y={town.side === 'above' ? town.y - 10 : town.y + 5}
+                  text-anchor={town.side === 'left' ? 'end' : town.side === 'above' ? 'middle' : 'start'}
+                >
+                  {town.name}
+                </text>
+              </g>
+            ))
+          }
+          <g class="routes__hub" transform={`translate(${hub[0]} ${hub[1]})`}>
+            <circle class="routes__pulse" r="10" />
+            <circle class="routes__pulse routes__pulse--late" r="10" />
+            <circle class="routes__dot" r="8" />
+            <text y="-17" text-anchor="middle">Oddanchatram</text>
+          </g>
+          <g class="routes__trucks" data-routes-trucks></g>
+        </svg>
+
+        <div class="routes__legend">
+          <div>
+            <p class="routes__state routes__state--kl">Kerala</p>
+            <ul role="list">
+              {kerala.map((town) => <li><button type="button" data-town-button={town.name}>{town.name}</button></li>)}
+            </ul>
+          </div>
+          <div>
+            <p class="routes__state routes__state--tn">Tamil Nadu</p>
+            <ul role="list">
+              {tamilNadu.map((town) => <li><button type="button" data-town-button={town.name}>{town.name}</button></li>)}
+            </ul>
+          </div>
+          <p class="routes__note">
+            <svg viewBox="-12 -12 24 24" width="18" height="18" aria-hidden="true"><circle r="11" /><path d="M0 -6 V6 M-5 1 a5 5 0 0 0 10 0 M-3 -3 H3" /></svg>
+            Two seaports within 200 km: Kochi ({towns.find((t) => t.name === 'Kochi')?.km} km) and Thoothukudi ({towns.find((t) => t.name === 'Thoothukudi')?.km} km), as the crow flies.
+          </p>
+        </div>
+      </figure>
+    </div>
+
+    <div class="market__foot" data-reveal>
+      <p class="market__source">
+        Figures and auction hours from published market profiles (TNAU Agritech, 2013; Business Today, 2008). They are
+        indicative and may have changed.
+      </p>
+      <a class="arrow-link" href="/sourcing-quality/">How we approach sourcing &amp; quality <Arrow /></a>
+    </div>
+  </div>
+</section>
+
+<script>
+  const section = document.querySelector<HTMLElement>('[data-market]');
+  const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+  if (section) {
+    // ── Figures count up the first time they come into view ──
+    const counters = [...section.querySelectorAll<HTMLElement>('[data-count]')];
+    const format = (n: number) => Math.round(n).toLocaleString('en-IN');
+    if (motionOk && 'IntersectionObserver' in window) {
+      counters.forEach((el) => (el.textContent = '0'));
+      const countObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target as HTMLElement;
+            countObserver.unobserve(el);
+            const end = Number(el.dataset.count);
+            const start = performance.now();
+            const tick = (now: number) => {
+              const t = Math.min((now - start) / 1600, 1);
+              el.textContent = format(end * (1 - (1 - t) ** 3));
+              if (t < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+          });
+        },
+        { threshold: 0.6 },
+      );
+      counters.forEach((el) => countObserver.observe(el));
+    }
+
+    // ── Clock: one auction at a time; plays through on its own until a time is chosen ──
+    const clock = section.querySelector<HTMLElement>('[data-clock]')!;
+    const steps = [...clock.querySelectorAll<HTMLElement>('[data-clock-step]')];
+    const stalls = [...clock.querySelectorAll<SVGGElement>('[data-clock-stall]')];
+    const sun = clock.querySelector<SVGGElement>('[data-clock-sun]')!;
+    const sunAt = (hour: number) => {
+      const a = Math.PI * (1 - (hour - 5) / 16);
+      return [360 + 290 * Math.cos(a), 170 - 150 * Math.sin(a)];
+    };
+    let current = 0;
+    let timer = 0;
+    let userChose = false;
+
+    const show = (index: number) => {
+      current = index;
+      const hour = Number(steps[index].dataset.hour);
+      const [x, y] = sunAt(hour);
+      sun.style.transform = `translate(${x}px, ${y}px)`;
+      clock.dataset.phase = hour >= 19 ? 'night' : hour >= 15 ? 'evening' : hour >= 8 ? 'day' : 'dawn';
+      steps.forEach((step, i) => {
+        step.classList.toggle('is-active', i === index);
+        step.querySelector('button')!.setAttribute('aria-pressed', String(i === index));
+      });
+      stalls.forEach((stall, i) => stall.classList.toggle('is-active', i === index));
+    };
+    clock.classList.add('is-live');
+    show(0);
+
+    steps.forEach((step, i) =>
+      step.querySelector('button')!.addEventListener('click', () => {
+        userChose = true;
+        window.clearInterval(timer);
+        show(i);
+      }),
+    );
+
+    if (motionOk && 'IntersectionObserver' in window) {
+      new IntersectionObserver(
+        ([entry]) => {
+          window.clearInterval(timer);
+          if (entry.isIntersecting && !userChose) {
+            timer = window.setInterval(() => show((current + 1) % steps.length), 4200);
+          }
+        },
+        { threshold: 0.45 },
+      ).observe(clock);
+    }
+
+    // ── Routes: draw in when seen, then small lorries run out along each one ──
+    const routes = section.querySelector<HTMLElement>('[data-routes]')!;
+    const trucks = routes.querySelector<SVGGElement>('[data-routes-trucks]')!;
+    const paths = [...routes.querySelectorAll<SVGPathElement>('[data-route]')];
+    const svgNs = 'http://www.w3.org/2000/svg';
+
+    const startTrucks = () => {
+      if (!motionOk || trucks.childElementCount) return;
+      paths.forEach((path, i) => {
+        const dot = document.createElementNS(svgNs, 'circle');
+        dot.setAttribute('r', '3.5');
+        dot.setAttribute('class', `routes__truck ${path.classList.contains('routes__route--kl') ? 'is-kl' : ''}`);
+        const motion = document.createElementNS(svgNs, 'animateMotion');
+        motion.setAttribute('dur', `${3.2 + (i % 4) * 0.6}s`);
+        motion.setAttribute('begin', `${(i * 0.37).toFixed(2)}s`);
+        motion.setAttribute('repeatCount', 'indefinite');
+        motion.setAttribute('keyPoints', '0;1');
+        motion.setAttribute('keyTimes', '0;1');
+        motion.setAttribute('calcMode', 'linear');
+        const mpath = document.createElementNS(svgNs, 'mpath');
+        mpath.setAttribute('href', `#${path.id}`);
+        motion.appendChild(mpath);
+        dot.appendChild(motion);
+        trucks.appendChild(dot);
+      });
+    };
+
+    if ('IntersectionObserver' in window) {
+      routes.classList.add('is-waiting');
+      new IntersectionObserver(
+        ([entry], observer) => {
+          if (!entry.isIntersecting) return;
+          observer.disconnect();
+          routes.classList.remove('is-waiting');
+          routes.classList.add('is-drawn');
+          window.setTimeout(startTrucks, 1600);
+        },
+        { threshold: 0.35 },
+      ).observe(routes);
+    }
+
+    // Hovering or focusing a town, on the map or in the list, traces its route
+    const focusTown = (name: string | null) => {
+      routes.classList.toggle('has-focus', !!name);
+      routes.querySelectorAll<SVGElement>('[data-route], [data-town]').forEach((el) => {
+        el.classList.toggle('is-focus', (el.dataset.route || el.dataset.town) === name);
+      });
+      routes.querySelectorAll<HTMLElement>('[data-town-button]').forEach((el) => {
+        el.classList.toggle('is-focus', el.dataset.townButton === name);
+      });
+    };
+    routes.querySelectorAll<HTMLElement>('[data-town], [data-town-button]').forEach((el) => {
+      const name = el.dataset.town || el.dataset.townButton || null;
+      el.addEventListener('pointerenter', () => focusTown(name));
+      el.addEventListener('pointerleave', () => focusTown(null));
+      el.addEventListener('focus', () => focusTown(name));
+      el.addEventListener('blur', () => focusTown(null));
+      el.addEventListener('click', () => focusTown(name));
+    });
+  }
+</script>
+
+<style>
+  .market {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+      radial-gradient(48rem 30rem at 100% 0%, rgba(167, 181, 154, 0.32), transparent 62%),
+      radial-gradient(40rem 26rem at 0% 100%, rgba(230, 199, 156, 0.3), transparent 60%), var(--ivory);
+  }
+  .market h2 em {
+    color: var(--terracotta-deep);
+  }
+
+  /* ── Figures ─────────────────────────────────────────────────────────── */
+  .market__figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0 0 clamp(2.5rem, 5vw, 4rem);
+    padding: 0;
+    list-style: none;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  @media (min-width: 54rem) {
+    .market__figures {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .market__figures li {
+    padding: clamp(1.25rem, 3vw, 2rem);
+    background: var(--cream);
+  }
+  .market__number {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 4.6vw, 3.4rem);
+    line-height: 1;
+    color: var(--green);
+    font-variant-numeric: tabular-nums;
+  }
+  .market__unit {
+    margin: 0.5rem 0 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--terracotta-deep);
+  }
+  .market__text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  /* ── Panels ──────────────────────────────────────────────────────────── */
+  .market__panels {
+    display: grid;
+    gap: clamp(1.25rem, 3vw, 2rem);
+  }
+  @media (min-width: 64rem) {
+    .market__panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      column-gap: clamp(1.5rem, 3vw, 2.5rem);
+      align-items: start;
+    }
+    .market__panel-head {
+      grid-column: 1 / -1;
+    }
+    .clock__scene,
+    .routes__map {
+      grid-row: 2;
+      grid-column: 1;
+    }
+    .clock__times,
+    .routes__legend {
+      grid-row: 2;
+      grid-column: 2;
+      margin-top: 0 !important;
+    }
+    .routes__legend {
+      grid-template-columns: 1fr;
+    }
+  }
+  .market__panel {
+    margin: 0;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--cream);
+    box-shadow: var(--shadow-sm);
+    min-width: 0;
+  }
+  .market__panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .market__kicker {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 2.4vw, 1.7rem);
+    color: var(--charcoal);
+  }
+  .market__hint {
+    margin: 0;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* ── Clock ───────────────────────────────────────────────────────────── */
+  .clock {
+    --sky: #f3e3c7;
+    --ink: var(--green);
+    --ink-soft: rgba(23, 63, 53, 0.3);
+  }
+  .clock[data-phase='day'] {
+    --sky: #eef0e1;
+  }
+  .clock[data-phase='evening'] {
+    --sky: #f2d9b9;
+  }
+  .clock[data-phase='night'] {
+    --sky: var(--green-deep);
+    --ink: var(--sand);
+    --ink-soft: rgba(230, 199, 156, 0.35);
+  }
+  .clock__scene {
+    border-radius: var(--radius);
+    background: var(--sky);
+    transition: background-color 1s var(--ease);
+    overflow: hidden;
+  }
+  .clock__art {
+    display: block;
+    width: 100%;
+    height: auto;
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .clock__art * {
+    transition:
+      stroke 1s var(--ease),
+      fill 1s var(--ease),
+      opacity 0.6s var(--ease);
+  }
+  .clock__path {
+    stroke: var(--ink-soft);
+    stroke-dasharray: 2 8;
+  }
+  .clock__tick circle {
+    fill: var(--ink-soft);
+    stroke: none;
+  }
+  .clock__tick text {
+    fill: var(--ink-soft);
+    stroke: none;
+    font: 600 12px var(--sans);
+    letter-spacing: 0.08em;
+    text-anchor: middle;
+    text-transform: uppercase;
+  }
+  .clock__sun {
+    transition: transform 1.4s cubic-bezier(0.45, 0, 0.2, 1);
+  }
+  .clock__disc {
+    fill: #f0b54a;
+    stroke: #d98e2a;
+  }
+  .clock__rays {
+    stroke: #e7a23a;
+    stroke-width: 3;
+    animation: spin 14s linear infinite;
+  }
+  .clock__moon {
+    fill: var(--ivory);
+    stroke: none;
+    opacity: 0;
+  }
+  .clock[data-phase='night'] .clock__disc,
+  .clock[data-phase='night'] .clock__rays {
+    opacity: 0;
+  }
+  .clock[data-phase='night'] .clock__moon {
+    opacity: 1;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .clock__ground {
+    stroke: var(--ink-soft);
+  }
+  .stall__awning {
+    fill: var(--sky);
+  }
+  .stall--onion .stall__awning,
+  .stall--chilli .stall__awning {
+    fill: rgba(185, 101, 69, 0.18);
+  }
+  .stall--tomato .stall__awning,
+  .stall--veg .stall__awning {
+    fill: rgba(167, 181, 154, 0.3);
+  }
+  .stall__scallop,
+  .stall__posts {
+    stroke-width: 1.8;
+  }
+  .stall__counter {
+    fill: var(--sky);
+  }
+  .pile__line,
+  .pile__calyx {
+    stroke: #5d8a3a;
+    stroke-width: 1.6;
+  }
+  .fill-onion {
+    fill: #b8566e;
+    stroke: #8f3d53;
+    stroke-width: 1.4;
+  }
+  .fill-tomato {
+    fill: #d04a37;
+    stroke: #a83626;
+    stroke-width: 1.4;
+  }
+  .fill-brinjal {
+    fill: #6b3f6e;
+    stroke: #4d2a50;
+    stroke-width: 1.4;
+  }
+  .pile__drumstick {
+    stroke: #6f9447;
+    stroke-width: 3.6;
+  }
+  .pile__chilli {
+    stroke: #c83a2b;
+    stroke-width: 3.6;
+  }
+  .pile__chilli.is-green {
+    stroke: #5d8a3a;
+  }
+  /* The stall whose auction is on lifts its pile and brightens; the others rest */
+  .pile {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  :global(.js) .clock.is-live .stall {
+    opacity: 0.45;
+  }
+  :global(.js) .clock.is-live .stall.is-active {
+    opacity: 1;
+  }
+  .stall.is-active .pile {
+    transform: scale(1.12) translateY(-3px);
+  }
+  .lorry {
+    transition: transform 1.6s cubic-bezier(0.55, 0, 0.3, 1);
+  }
+  .lorry__body {
+    fill: var(--sky);
+  }
+  .lorry__load {
+    fill: rgba(230, 199, 156, 0.5);
+    stroke-width: 1.8;
+  }
+  .lorry__wheel {
+    fill: var(--sky);
+  }
+  .clock[data-phase='night'] .lorry {
+    transform: translateX(160px);
+  }
+
+  .clock__times {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .clock__button {
+    display: grid;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.7rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--charcoal);
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+    transition:
+      background-color 0.3s var(--ease),
+      border-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .clock__button:hover {
+    border-color: var(--green);
+  }
+  .clock__step.is-active .clock__button {
+    background: var(--green);
+    border-color: var(--green);
+    color: var(--ivory);
+  }
+  .clock__time {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+  .clock__name {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+  }
+  .clock__text {
+    margin: 0.75rem 0 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+  /* With JavaScript the descriptions share one line beneath the buttons; without it, each sits under its time */
+  :global(.js) .clock__times {
+    grid-template-rows: auto auto auto;
+  }
+  :global(.js) .clock__step {
+    display: contents;
+  }
+  :global(.js) .clock__text {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    display: none;
+    min-height: 4.5em;
+    animation: clock-text 0.6s var(--ease);
+  }
+  :global(.js) .clock__step.is-active .clock__text {
+    display: block;
+  }
+  @keyframes clock-text {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+  html:not(.js) .clock__times {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Routes ──────────────────────────────────────────────────────────── */
+  .routes__map {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    background:
+      radial-gradient(circle at 52% 34%, rgba(167, 181, 154, 0.28), transparent 60%),
+      var(--ivory);
+    overflow: hidden;
+  }
+  .routes__region {
+    font: 600 13px var(--sans);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    fill: rgba(23, 63, 53, 0.22);
+  }
+  .routes__sea {
+    font: italic 400 15px var(--serif);
+    fill: rgba(23, 63, 53, 0.3);
+  }
+  .routes__ring circle {
+    fill: none;
+    stroke: rgba(23, 63, 53, 0.16);
+    stroke-dasharray: 3 6;
+  }
+  .routes__ring text {
+    font: 600 10px var(--sans);
+    letter-spacing: 0.1em;
+    fill: rgba(23, 63, 53, 0.35);
+  }
+  .routes__route {
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    transition:
+      stroke-dashoffset 1.4s var(--ease) calc(var(--i) * 70ms),
+      opacity 0.3s var(--ease),
+      stroke-width 0.3s var(--ease);
+  }
+  .routes__route--tn {
+    stroke: var(--green);
+  }
+  .routes__route--kl {
+    stroke: var(--terracotta);
+  }
+  .routes.is-waiting .routes__route,
+  .routes.is-drawn .routes__route {
+    stroke-dasharray: 1;
+  }
+  .routes.is-waiting .routes__route {
+    stroke-dashoffset: 1;
+  }
+  .routes.is-drawn .routes__route {
+    stroke-dashoffset: 0;
+  }
+  .routes.has-focus .routes__route {
+    opacity: 0.18;
+  }
+  .routes.has-focus .routes__route.is-focus {
+    opacity: 1;
+    stroke-width: 3.5;
+  }
+  .routes__town circle {
+    fill: var(--cream);
+    stroke-width: 2;
+  }
+  .routes__town--tn circle,
+  .routes__town--tn path {
+    stroke: var(--green);
+  }
+  .routes__town--kl circle,
+  .routes__town--kl path {
+    stroke: var(--terracotta-deep);
+  }
+  .routes__port path {
+    fill: none;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+  .routes__town text {
+    font: 500 15px var(--sans);
+    fill: var(--charcoal);
+    paint-order: stroke;
+    stroke: var(--ivory);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    transition: font-weight 0.2s;
+  }
+  .routes__town {
+    cursor: pointer;
+  }
+  /* Towns close to the market show their names only when picked, to keep the middle readable */
+  .routes__town.is-quiet text {
+    opacity: 0;
+    transition: opacity 0.2s var(--ease);
+  }
+  .routes__town.is-quiet.is-focus text {
+    opacity: 1;
+  }
+  .routes__town.is-focus text {
+    font-weight: 700;
+  }
+  .routes__town.is-focus circle {
+    fill: var(--sand);
+  }
+  .routes__hub text {
+    font: 600 17px var(--serif);
+    fill: var(--green);
+    paint-order: stroke;
+    stroke: var(--ivory);
+    stroke-width: 5px;
+  }
+  .routes__dot {
+    fill: var(--terracotta-deep);
+    stroke: var(--ivory);
+    stroke-width: 3;
+  }
+  .routes__pulse {
+    fill: rgba(185, 101, 69, 0.35);
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: pulse 2.6s ease-out infinite;
+  }
+  .routes__pulse--late {
+    animation-delay: 1.3s;
+  }
+  @keyframes pulse {
+    from {
+      transform: scale(0.8);
+      opacity: 0.9;
+    }
+    to {
+      transform: scale(3.4);
+      opacity: 0;
+    }
+  }
+  :global(.routes__truck) {
+    fill: var(--green);
+    stroke: var(--ivory);
+    stroke-width: 1.5;
+  }
+  :global(.routes__truck.is-kl) {
+    fill: var(--terracotta-deep);
+  }
+
+  @media (max-width: 40rem) {
+    .routes__town text {
+      font-size: 22px;
+    }
+    .routes__hub text {
+      font-size: 24px;
+    }
+    .routes__region {
+      font-size: 18px;
+    }
+    .routes__ring text {
+      display: none;
+    }
+  }
+
+  .routes__legend {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem 1.75rem;
+    margin-top: 1.25rem;
+  }
+  @media (min-width: 40rem) {
+    .routes__legend {
+      grid-template-columns: auto 1fr;
+    }
+  }
+  .routes__legend ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .routes__legend button {
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 99px;
+    background: transparent;
+    color: var(--charcoal);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition:
+      background-color 0.2s var(--ease),
+      border-color 0.2s var(--ease);
+  }
+  .routes__legend button:hover,
+  .routes__legend button.is-focus {
+    border-color: var(--green);
+    background: var(--sage-soft);
+  }
+  .routes__state {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .routes__state::before {
+    content: '';
+    width: 1.25rem;
+    height: 2px;
+    background: currentColor;
+  }
+  .routes__state--kl {
+    color: var(--terracotta-deep);
+  }
+  .routes__state--tn {
+    color: var(--green);
+  }
+  .routes__note {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .routes__note svg {
+    flex: none;
+    margin-top: 0.15rem;
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+  }
+
+  .market__foot {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem 2rem;
+    margin-top: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .market__source {
+    margin: 0;
+    max-width: 60ch;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clock__rays,
+    .routes__pulse {
+      animation: none;
+    }
+    .clock__sun,
+    .lorry,
+    .pile,
+    .routes__route {
+      transition: none;
+    }
+  }
+</style>

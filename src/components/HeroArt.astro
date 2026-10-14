@@ -1,0 +1,170 @@
+---
+// A small line drawing for the right-hand side of an inner page's hero. It draws itself when the
+// page loads. `kind` picks the drawing: story, products, sourcing or contact. Decorative only,
+// and shown on wide screens only (see .hero-art in global.css).
+import { tree } from './art.js';
+
+const { kind = 'story' } = Astro.props;
+
+// Order of appearance: each element starts a beat after the one before it.
+const line = (n, extra = '') => ({ class: `ha ${extra}`, pathLength: 1, style: `--d:${n}` });
+const pop = (n, extra = '') => ({ class: `ha-pop ${extra}`, style: `--d:${n}` });
+
+const moringa = tree(104, 300, 170, 6);
+const cartons = [
+  [40, 250], [112, 250], [184, 250],
+  [76, 200], [148, 200],
+  [112, 150],
+];
+const trail = [
+  [286, 176], [300, 150], [318, 128], [340, 112],
+];
+---
+
+<svg class="hero-art" viewBox="0 0 440 340" aria-hidden="true" focusable="false">
+  {
+    kind === 'story' && (
+      <>
+        <path {...line(0, 'soft')} d="M14 300 H426" />
+        <path {...line(1, 'soft')} d="M24 300 C84 204 150 176 210 214 C262 156 344 156 418 300" />
+        <circle {...line(2)} cx="344" cy="84" r="28" />
+        <path {...line(3)} d={moringa.trunk} />
+        {moringa.branches.map((d, k) => <path {...line(4 + k * 0.4, 'thin')} d={d} />)}
+        {moringa.leaves.map(([x, y], k) => <ellipse {...pop(6 + k * 0.08, 'leaf')} cx={x} cy={y} rx="7.5" ry="3.8" />)}
+        <path {...line(6)} d="M236 300 V250 H306 V300 M226 254 L271 218 L316 254 M264 300 V272 H280 V300" />
+        <path {...line(8)} d="M344 300 V256 M404 300 V256 M334 256 L346 232 H402 L414 256 Z" />
+        <path {...line(9, 'thin')} d="M334 256 a10 10 0 0 0 20 0 a10 10 0 0 0 20 0 a10 10 0 0 0 20 0 a10 10 0 0 0 20 0" />
+        {[356, 374, 392].map((x, k) => <circle {...pop(11 + k * 0.4, 'accent')} cx={x} cy="290" r="8" />)}
+        <g {...pop(12)}>
+          <path class="pin" d="M271 196 c-13 -17 -19 -27 -19 -37 a19 19 0 0 1 38 0 c0 10 -6 20 -19 37 Z" />
+          <circle class="pin-eye" cx="271" cy="159" r="6.5" />
+        </g>
+      </>
+    )
+  }
+  {
+    kind === 'products' && (
+      <>
+        <path {...line(0, 'soft')} d="M14 300 H426" />
+        {cartons.map(([x, y], k) => (
+          <>
+            <rect {...line(1 + k, 'panel')} x={x} y={y} width="68" height="50" rx="4" />
+            <path {...line(1.6 + k, 'thin soft')} d={`M${x + 34} ${y} v15`} />
+          </>
+        ))}
+        <path {...line(8, 'panel')} d="M280 252 H372 L360 300 H292 Z" />
+        <path {...line(9, 'thin soft')} d="M284 268 H368 M288 284 H364" />
+        {[300, 320, 340, 310, 330, 352].map((x, k) => <circle {...pop(10 + k * 0.4, 'accent')} cx={x} cy={k < 3 ? 242 : 226} r="10" />)}
+        <path {...line(11, 'panel')} d="M386 300 V236 q0 -10 10 -10 h14 q10 0 10 10 V300 Z" />
+        <path {...line(12)} d="M388 218 H418" />
+        <rect {...pop(13, 'leaf')} x="392" y="256" width="22" height="26" rx="3" />
+      </>
+    )
+  }
+  {
+    kind === 'sourcing' && (
+      <>
+        <path {...line(0, 'soft')} d="M14 300 H426" />
+        <path {...line(0.5, 'thin soft')} d="M220 262 V300" />
+        <rect {...line(1, 'soft')} x="140" y="34" width="170" height="228" rx="10" transform="rotate(5 225 148)" />
+        <rect {...line(2, 'panel')} x="140" y="34" width="170" height="228" rx="10" />
+        <path {...line(4, 'bold')} d="M164 68 H240" />
+        {[108, 142, 176].map((y, k) => (
+          <>
+            <path {...line(5 + k * 1.2, 'soft')} d={`M198 ${y} H286`} />
+            <path {...line(5.6 + k * 1.2, 'tick')} d={`M162 ${y - 2} l7 8 l13 -16`} />
+          </>
+        ))}
+        <path {...line(9, 'thin')} d="M164 232 q8 -20 16 0 t16 0 t16 0" />
+        <g {...pop(10)}>
+          <circle class="pin" cx="272" cy="222" r="24" />
+          <path class="seal-tick" d="M263 222 l7 8 l12 -15" />
+        </g>
+        <circle {...line(11)} cx="352" cy="232" r="34" />
+        <path {...line(12, 'bold')} d="M376 256 L404 286" />
+        <rect {...line(12, 'panel')} x="40" y="246" width="70" height="54" rx="4" />
+        <path {...line(13, 'thin soft')} d="M75 246 v16" />
+      </>
+    )
+  }
+  {
+    kind === 'contact' && (
+      <>
+        <path {...line(0, 'soft')} d="M14 300 H426" />
+        <rect {...line(1, 'panel')} x="50" y="166" width="216" height="134" rx="8" />
+        <path {...line(3)} d="M52 172 L158 246 L264 172" />
+        <path {...line(4, 'thin soft')} d="M52 296 L126 226 M264 296 L190 226" />
+        {trail.map(([x, y], k) => <circle {...pop(6 + k * 0.6, 'accent')} cx={x} cy={y} r="4" />)}
+        <path {...line(8, 'panel')} d="M352 106 L424 44 L330 66 L352 82 Z" />
+        <path {...line(9)} d="M352 82 L424 44 M352 82 V106" />
+        <path {...line(11, 'panel')} d="M304 214 h92 a12 12 0 0 1 12 12 v34 a12 12 0 0 1 -12 12 h-52 l-18 18 v-18 h-22 a12 12 0 0 1 -12 -12 v-34 a12 12 0 0 1 12 -12 Z" />
+        {[326, 350, 374].map((x, k) => <circle {...pop(13 + k * 0.5, 'leaf')} cx={x} cy="243" r="5" />)}
+      </>
+    )
+  }
+</svg>
+
+<style>
+  svg {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  /* A line that draws itself, and a shape that pops in; --d is the element's turn in the order */
+  .ha {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: ha-draw 1.3s var(--ease) calc(var(--d) * 110ms + 350ms) forwards;
+  }
+  .ha-pop {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ha-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--d) * 110ms + 350ms) backwards;
+  }
+  @keyframes ha-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes ha-pop {
+    from {
+      transform: scale(0);
+    }
+  }
+  .soft {
+    stroke: rgba(23, 63, 53, 0.34);
+  }
+  .thin {
+    stroke-width: 1.8;
+  }
+  .bold {
+    stroke-width: 4;
+  }
+  .panel {
+    fill: var(--ivory);
+  }
+  .leaf {
+    fill: var(--sage);
+    stroke: none;
+  }
+  .accent {
+    fill: var(--terracotta);
+    stroke: none;
+  }
+  .tick {
+    stroke: var(--terracotta-deep);
+  }
+  .pin {
+    fill: var(--terracotta-deep);
+    stroke: none;
+  }
+  .pin-eye {
+    fill: var(--ivory);
+    stroke: none;
+  }
+  .seal-tick {
+    stroke: var(--ivory);
+  }
+</style>

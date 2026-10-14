@@ -2,10 +2,9 @@
 import Base from '../layouts/Base.astro';
 import Photo from '../components/Photo.astro';
 import Arrow from '../components/Arrow.astro';
-import Icon from '../components/Icon.astro';
-import ClosingCta from '../components/ClosingCta.astro';
-import Journey from '../components/Journey.astro';
 import HeroReel from '../components/HeroReel.astro';
+import Journey from '../components/Journey.astro';
+import MoringaCountry from '../components/MoringaCountry.astro';
 import { site, categories, products, getCategory, productHref } from '../data/index.js';
 
 const two = (n) => String(n).padStart(2, '0');
@@ -65,7 +64,10 @@ const steps = [
     </div>
   </section>
 
-  <!-- C. The range -->
+  <!-- C. Moringa country: a zoom from the world to Oddanchatram, and one tree's three harvests -->
+  <MoringaCountry />
+
+  <!-- D. The range -->
   <section class="section" id="range" aria-labelledby="range-heading">
     <div class="container">
       <div class="section-head" data-reveal>
@@ -119,7 +121,7 @@ const steps = [
     </div>
   </section>
 
-  <!-- D. Why buyers talk to us -->
+  <!-- E. Why buyers talk to us -->
   <section class="section on-dark why" aria-labelledby="why-heading">
     <div class="container why__grid">
       <div class="why__intro" data-reveal>
@@ -149,46 +151,10 @@ const steps = [
     </div>
   </section>
 
-  <!-- E. Our Oddanchatram story -->
-  <section class="section" aria-labelledby="story-heading">
-    <div class="container split">
-      <div class="split__media story-media" data-reveal="wipe" data-parallax>
-        <Photo file={site.locationImage.file} alt={site.locationImage.alt} ratio="4 / 5" />
-        <p class="story-badge">
-          <Icon name="pin" size={18} />
-          <span>
-            <strong>Based in {site.location.town}</strong>
-            {site.location.district}, {site.location.state}
-          </span>
-        </p>
-        {site.locationImage.caption && <p class="photo-caption">{site.locationImage.caption}</p>}
-      </div>
-      <div class="split__body" data-reveal="right">
-        <p class="eyebrow">Our Oddanchatram story</p>
-        <h2 id="story-heading">Our name carries our hometown.</h2>
-        <div class="story-name">
-          <p class="namemark" aria-label="Oddanchatram, with the letters ANCHATRA highlighted">
-            <span aria-hidden="true">Odd</span><strong aria-hidden="true">anchatra</strong><span aria-hidden="true">m</span>
-          </p>
-          <p class="namemark-note">ANCHATRA is taken from the middle of Oddanchatram.</p>
-        </div>
-        <div class="prose">
-          <p>
-            Oddanchatram is a market town in the Dindigul district of Tamil Nadu, and it is where our founder is from.
-            Personal relationships with shop owners in its vegetable market were the starting point for this business.
-          </p>
-        </div>
-        <div class="btn-row">
-          <a class="btn btn--green" href="/our-story/">Read our story <Arrow /></a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- The export journey: a drawing that builds as the page scrolls -->
+  <!-- F. The export journey: a drawing that builds as the page scrolls -->
   <Journey />
 
-  <!-- F. How a buying enquiry works -->
+  <!-- G. How a buying enquiry works -->
   <section class="section section--deep" aria-labelledby="process-heading">
     <div class="container">
       <div class="section-head" data-reveal>
@@ -218,8 +184,6 @@ const steps = [
     </div>
   </section>
 
-  <!-- G. Closing enquiry section -->
-  <ClosingCta />
 </Base>
 
 <style>
@@ -383,7 +347,7 @@ const steps = [
   /* ── Why buyers talk to us ────────────────────────────────────────────── */
   .why {
     background:
-      radial-gradient(48rem 28rem at 100% 0%, rgba(72, 58, 40, 0.8), transparent 60%), var(--earth);
+      radial-gradient(48rem 28rem at 100% 0%, rgba(43, 92, 77, 0.8), transparent 60%), var(--earth);
   }
   .why__grid {
     display: grid;
@@ -446,55 +410,6 @@ const steps = [
   }
 
   /* ── Story ────────────────────────────────────────────────────────────── */
-  .story-media {
-    position: relative;
-  }
-  .story-media :global(.photo) {
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-  }
-  .story-badge {
-    position: absolute;
-    right: clamp(-1rem, -1.5vw, -0.5rem);
-    top: clamp(1.25rem, 4vw, 2.5rem);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 0;
-    padding: 0.85rem 1.15rem;
-    background: var(--earth);
-    color: rgba(246, 242, 233, 0.82);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-    font-size: 0.82rem;
-    line-height: 1.35;
-    transition:
-      opacity 0.8s var(--ease) 0.5s,
-      transform 0.8s var(--ease) 0.5s;
-  }
-  :global(.js) .story-media:not(.is-visible) .story-badge {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-  .story-badge :global(svg) {
-    flex: none;
-    color: var(--sand);
-  }
-  .story-badge strong {
-    display: block;
-    font-weight: 600;
-    font-size: 1.02rem;
-    color: var(--ivory);
-  }
-  .story-name {
-    margin: 2rem 0;
-    padding: 1.5rem clamp(1.25rem, 2.5vw, 1.75rem);
-    background: var(--ivory-deep);
-    border-left: 3px solid var(--terracotta);
-    border-radius: 0 var(--radius) var(--radius) 0;
-  }
-
-  /* ── Process ──────────────────────────────────────────────────────────── */
   .steps {
     display: grid;
     gap: 1.25rem;

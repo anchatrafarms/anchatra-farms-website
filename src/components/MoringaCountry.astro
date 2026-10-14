@@ -1,0 +1,857 @@
+---
+// Moringa country. Two parts:
+// 1. A zoom told by scrolling: nested rings for the world, India, Tamil Nadu, Dindigul and
+//    Oddanchatram. The drawing stays put while the steps scroll past, and each step zooms it one
+//    ring further in.
+// 2. One tree, three harvests: a moringa tree whose leaves, pods and seeds can be picked out.
+// Claims are kept to what the sources support (see the note at the foot of the section).
+// Without JavaScript the drawing shows every ring at once and the steps read as a list.
+import { round, tree } from './art.js';
+import Arrow from './Arrow.astro';
+import { getProduct, productHref, enquiryHref } from '../data/index.js';
+
+const powder = getProduct('moringa-powder');
+
+const levels = [
+  {
+    label: 'The world',
+    cx: 300, cy: 300, r: 270,
+    figure: 'No. 1',
+    title: 'India grows the most moringa in the world.',
+    text: 'Of all the countries that grow the tree, India is the largest producer.',
+  },
+  {
+    label: 'India',
+    cx: 350, cy: 370, r: 120,
+    figure: 'No. 1',
+    title: 'Tamil Nadu leads India.',
+    text: 'Known locally as murungai, moringa covers more ground in Tamil Nadu than in any other Indian state.',
+  },
+  {
+    label: 'Tamil Nadu',
+    cx: 372, cy: 398, r: 52,
+    figure: '19,867 ha',
+    title: 'A state built for moringa export.',
+    text: 'Almost all of it — 93% — lies within Tamil Nadu’s nine-district Moringa Export Zone, which has its own export facilitation centre in Madurai.',
+  },
+  {
+    label: 'Dindigul',
+    cx: 380, cy: 410, r: 22,
+    figure: '5,500+ ha',
+    title: 'Dindigul grows the most in the state.',
+    text: 'Our home district has the largest area under moringa of any district in Tamil Nadu.',
+  },
+  {
+    label: 'Oddanchatram',
+    cx: 383, cy: 414, r: 9.5,
+    figure: 'Home',
+    title: 'And Oddanchatram is at its heart.',
+    text: 'Within Dindigul, the Oddanchatram and Thoppampatti blocks hold most of the moringa, and fresh drumsticks are traded through the Oddanchatram market. This is our home ground.',
+  },
+];
+
+// Fit a ring to the drawing: the transform that puts it in the middle, filling most of the view
+const zoomTo = ({ cx, cy, r }) => {
+  const k = 255 / r;
+  return `translate(300px, 300px) scale(${round(k * 100) / 100}) translate(${-cx}px, ${-cy}px)`;
+};
+
+// Moringa leaflets scattered through each ring, but not inside the next one in
+let seed = 7;
+const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+const leaves = levels.map((level, i) => {
+  const inner = levels[i + 1];
+  const out = [];
+  let tries = 0;
+  while (out.length < (i === levels.length - 1 ? 0 : 22) && tries++ < 600) {
+    const a = random() * Math.PI * 2;
+    const d = Math.sqrt(random()) * level.r * 0.86;
+    const x = level.cx + Math.cos(a) * d;
+    const y = level.cy + Math.sin(a) * d;
+    if (y < level.cy - level.r * 0.62) continue; // keep the label clear
+    if (inner && Math.hypot(x - inner.cx, y - inner.cy) < inner.r * 1.25) continue;
+    out.push({ x: round(x * 100) / 100, y: round(y * 100) / 100, rot: Math.round(random() * 180), s: level.r * 0.03 });
+  }
+  return out;
+});
+
+// The globe's lines, for the outermost ring
+const globe = levels[0];
+const meridians = [0.3, 0.62, 0.88].map((f) => round(globe.r * f));
+const parallels = [-0.66, -0.33, 0, 0.33, 0.66].map((f) => ({
+  y: round(globe.cy + globe.r * f),
+  half: round(globe.r * Math.sqrt(1 - f * f)),
+}));
+
+// A tiny moringa tree and a pin, in the innermost ring
+const home = levels[4];
+// Drawn at full size around (0, 0) and scaled down into place
+const tiny = tree(0, 0, 100, 8);
+const tinyAt = `translate(${home.cx - 2} ${home.cy + 5.5}) scale(0.065)`;
+
+// ── Part 2: one tree, three harvests ─────────────────────────────────────────
+const TX = 250;
+const GROUND = 392;
+const H = 300;
+const big = tree(TX, GROUND, H, 11);
+// Pods hang from points along the lower branches
+const pods = [
+  [0.45, -1, 0.5, 0.55],
+  [0.6, 1, 0.55, 0.6],
+  [0.75, -1, 0.42, 0.75],
+  [0.88, 1, 0.4, 0.7],
+  [0.45, -1, 0.5, 0.85],
+  [0.6, 1, 0.55, 0.9],
+].map(([f, dir, l, t], k) => {
+  const y0 = GROUND - H * f;
+  const len = H * l;
+  const x1 = TX + dir * len;
+  const y1 = y0 - len * 0.45;
+  const cx = TX + dir * len * 0.5;
+  const cy = y0 - len * 0.5;
+  const px = (1 - t) ** 2 * TX + 2 * (1 - t) * t * cx + t * t * x1;
+  const py = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * cy + t * t * y1;
+  const drop = 62 + (k % 3) * 14;
+  const sway = dir * (6 + (k % 2) * 5);
+  return `M${round(px)} ${round(py)} q${sway} ${round(drop * 0.5)} ${round(sway * 0.4)} ${drop}`;
+});
+// Winged seeds, fallen beside an opened pod
+const seeds = [
+  [420, 372, -20],
+  [448, 380, 15],
+  [474, 368, 40],
+];
+
+const harvests = [
+  {
+    id: 'leaves',
+    name: 'Leaves',
+    title: 'Dried and milled into moringa powder.',
+    text: 'The small leaflets are dried and finely milled into a green powder used by food and ingredient businesses in blends, beverages and food products.',
+    spot: { left: 50, top: 22 },
+  },
+  {
+    id: 'pods',
+    name: 'Pods',
+    title: 'Drumsticks, a South Indian staple.',
+    text: 'The long pods — drumsticks, or murungakkai — are an everyday vegetable in South Indian kitchens, and are traded fresh through the Oddanchatram market.',
+    spot: { left: 66, top: 58 },
+  },
+  {
+    id: 'seeds',
+    name: 'Seeds',
+    title: 'The next crop.',
+    text: 'Winged seeds raise new trees. Annual varieties such as PKM-1, bred at Periyakulam in Tamil Nadu, can bear pods within their first year.',
+    spot: { left: 78, top: 88 },
+  },
+];
+---
+
+<section class="section moringa on-dark" aria-labelledby="moringa-heading" data-moringa>
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow">Why moringa, why here</p>
+        <h2 id="moringa-heading">At home in the world’s <em>moringa country.</em></h2>
+      </div>
+      <p class="lede">
+        India grows more moringa than any other country. Tamil Nadu grows the most in India, Dindigul grows the most in
+        Tamil Nadu, and Oddanchatram sits in the middle of Dindigul’s moringa belt. Scroll to zoom in.
+      </p>
+    </div>
+
+    <!-- Part 1: the zoom -->
+    <div class="zoom" data-zoom>
+      <div class="zoom__figure">
+        <svg class="zoom__art" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="zoom-globe">
+              <circle cx={globe.cx} cy={globe.cy} r={globe.r} />
+            </clipPath>
+            <radialGradient id="zoom-glow">
+              <stop offset="0" stop-color="#a7b59a" stop-opacity="0.28" />
+              <stop offset="1" stop-color="#a7b59a" stop-opacity="0.04" />
+            </radialGradient>
+          </defs>
+          <g class="zoom__world" data-zoom-world style={`transform: ${zoomTo(levels[0])}`}>
+            <g clip-path="url(#zoom-globe)" class="zoom__globe">
+              {meridians.map((rx) => <ellipse cx={globe.cx} cy={globe.cy} rx={rx} ry={globe.r} />)}
+              {parallels.map(({ y, half }) => <path d={`M${globe.cx - half} ${y} H${globe.cx + half}`} />)}
+            </g>
+            {
+              levels.map((level, i) => (
+                <g class="zoom__level" data-zoom-level={i}>
+                  <circle class="zoom__ring" cx={level.cx} cy={level.cy} r={level.r} fill="url(#zoom-glow)" />
+                  {leaves[i].map(({ x, y, rot, s }) => (
+                    <ellipse
+                      class="zoom__leaf"
+                      cx={x}
+                      cy={y}
+                      rx={round(s * 100) / 100}
+                      ry={round(s * 50) / 100}
+                      transform={`rotate(${rot} ${x} ${y})`}
+                    />
+                  ))}
+                  <text
+                    class="zoom__label"
+                    x={level.cx}
+                    y={round((level.cy - level.r * 0.74) * 100) / 100}
+                    font-size={round(level.r * 0.085 * 100) / 100}
+                  >
+                    {level.label}
+                  </text>
+                </g>
+              ))
+            }
+            <g class="zoom__home">
+              <path class="zoom__ground" d={`M${home.cx - 6.5} ${home.cy + 5.5} H${home.cx + 6.5}`} />
+              <g transform={tinyAt}>
+                <path class="zoom__trunk" d={tiny.trunk} />
+                {tiny.branches.map((d) => <path class="zoom__branch" d={d} />)}
+                {tiny.leaves.map(([x, y]) => <ellipse class="zoom__tiny-leaf" cx={x} cy={y} rx="7.5" ry="3.8" />)}
+              </g>
+              <path
+                class="zoom__pin"
+                transform={`translate(${home.cx + 3.4} ${home.cy + 5.5}) scale(0.075)`}
+                d="M0 0 c-13 -17 -19 -27 -19 -37 a19 19 0 0 1 38 0 c0 10 -6 20 -19 37 Z"
+              />
+              <circle class="zoom__pin-eye" cx={home.cx + 3.4} cy={home.cy + 5.5 - 2.8} r="0.5" />
+            </g>
+          </g>
+        </svg>
+        <ol class="zoom__crumbs" aria-hidden="true">
+          {levels.map((level, i) => <li data-zoom-crumb class={i === 0 ? 'is-active' : ''}>{level.label}</li>)}
+        </ol>
+      </div>
+
+      <ol class="zoom__steps" role="list">
+        {
+          levels.map((level, i) => (
+            <li class={`zoom__step ${i === 0 ? 'is-active' : ''}`} data-zoom-step={i} data-transform={zoomTo(level)}>
+              <p class="zoom__where">
+                <span>{String(i + 1).padStart(2, '0')}</span> {level.label}
+              </p>
+              <p class="zoom__figure-text">{level.figure}</p>
+              <h3>{level.title}</h3>
+              <p>{level.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <!-- Part 2: one tree, three harvests -->
+    <div class="harvest" data-harvest data-reveal>
+      <div class="harvest__art-wrap">
+        <svg class="harvest__art" viewBox="0 0 600 420" aria-hidden="true" focusable="false">
+          <path class="harvest__ground" d={`M20 ${GROUND} H580`} />
+          <g class="harvest__part harvest__part--tree">
+            <path class="harvest__trunk" d={big.trunk} />
+            {big.branches.map((d) => <path class="harvest__branch" d={d} />)}
+          </g>
+          <g class="harvest__part" data-part="leaves">
+            {
+              big.leaves.map(([x, y], k) => (
+                <ellipse class="harvest__leaf" cx={x} cy={y} rx="9" ry="4.5" style={`--k:${k}`} />
+              ))
+            }
+          </g>
+          <g class="harvest__part" data-part="pods">
+            {pods.map((d, k) => <path class="harvest__pod" d={d} style={`--k:${k}`} />)}
+          </g>
+          <g class="harvest__part" data-part="seeds">
+            <path class="harvest__open-pod" d="M360 386 q30 -26 70 -14 M360 386 q34 -8 70 -14" />
+            {
+              seeds.map(([x, y, rot]) => (
+                <g transform={`translate(${x} ${y}) rotate(${rot})`}>
+                  <path class="harvest__wing" d="M-11 0 q11 -11 22 0 q-11 11 -22 0 Z" />
+                  <circle class="harvest__seed" r="4.2" />
+                </g>
+              ))
+            }
+          </g>
+        </svg>
+        {
+          harvests.map((harvest, i) => (
+            <button
+              type="button"
+              class={`harvest__spot ${i === 0 ? 'is-active' : ''}`}
+              style={`left:${harvest.spot.left}%;top:${harvest.spot.top}%`}
+              data-harvest-spot={harvest.id}
+              aria-label={`Show ${harvest.name.toLowerCase()}`}
+              tabindex="-1"
+            >
+              <span></span>
+            </button>
+          ))
+        }
+      </div>
+
+      <div class="harvest__copy">
+        <p class="eyebrow">One tree, three harvests</p>
+        <div class="harvest__tabs" role="tablist" aria-label="Parts of the moringa tree">
+          {
+            harvests.map((harvest, i) => (
+              <button
+                type="button"
+                role="tab"
+                id={`harvest-tab-${harvest.id}`}
+                aria-controls={`harvest-panel-${harvest.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? '0' : '-1'}
+                data-harvest-tab={harvest.id}
+              >
+                {harvest.name}
+              </button>
+            ))
+          }
+        </div>
+        {
+          harvests.map((harvest, i) => (
+            <div
+              class="harvest__panel"
+              role="tabpanel"
+              id={`harvest-panel-${harvest.id}`}
+              aria-labelledby={`harvest-tab-${harvest.id}`}
+              data-harvest-panel={harvest.id}
+              hidden={i !== 0}
+            >
+              <h3>{harvest.title}</h3>
+              <p>{harvest.text}</p>
+            </div>
+          ))
+        }
+        {
+          powder && (
+            <div class="btn-row harvest__cta">
+              <a class="btn btn--sand" href={enquiryHref(powder)}>
+                Request moringa powder <Arrow />
+              </a>
+              <a class="btn btn--ghost" href={productHref(powder)}>
+                About our moringa powder
+              </a>
+            </div>
+          )
+        }
+      </div>
+    </div>
+
+    <p class="moringa__source">
+      Sources: Mongabay India, “The rise of India’s moringa economy” (2025); Government of Tamil Nadu, Moringa Export
+      Zone; Rajya Sabha answer on moringa in Tamil Nadu (March 2025); The Pharma Innovation Journal (2023). Areas are
+      as published and change from year to year.
+    </p>
+  </div>
+</section>
+
+<script>
+  const section = document.querySelector<HTMLElement>('[data-moringa]');
+
+  if (section) {
+    const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
+
+    // ── Zoom: the step crossing the middle of the screen picks the ring ──
+    const zoom = section.querySelector<HTMLElement>('[data-zoom]')!;
+    const world = zoom.querySelector<SVGGElement>('[data-zoom-world]')!;
+    const steps = [...zoom.querySelectorAll<HTMLElement>('[data-zoom-step]')];
+    const levels = [...zoom.querySelectorAll<SVGGElement>('[data-zoom-level]')];
+    const crumbs = [...zoom.querySelectorAll<HTMLElement>('[data-zoom-crumb]')];
+
+    const go = (index: number) => {
+      world.style.transform = steps[index].dataset.transform!;
+      zoom.dataset.level = String(index);
+      steps.forEach((step, i) => step.classList.toggle('is-active', i === index));
+      crumbs.forEach((crumb, i) => {
+        crumb.classList.toggle('is-active', i === index);
+        crumb.classList.toggle('is-past', i < index);
+      });
+      levels.forEach((level, i) => {
+        level.classList.toggle('is-active', i === index);
+        level.classList.toggle('is-outer', i < index);
+      });
+    };
+
+    if ('IntersectionObserver' in window) {
+      zoom.classList.add('is-live');
+      go(0);
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) go(Number((entry.target as HTMLElement).dataset.zoomStep));
+          });
+        },
+        { rootMargin: '-48% 0px -48% 0px' },
+      );
+      steps.forEach((step) => observer.observe(step));
+    }
+
+    // ── Harvest: tabs, and the matching hotspots on the drawing ──
+    const harvest = section.querySelector<HTMLElement>('[data-harvest]')!;
+    const tabs = [...harvest.querySelectorAll<HTMLButtonElement>('[data-harvest-tab]')];
+    const panels = [...harvest.querySelectorAll<HTMLElement>('[data-harvest-panel]')];
+    const spots = [...harvest.querySelectorAll<HTMLButtonElement>('[data-harvest-spot]')];
+    const parts = [...harvest.querySelectorAll<SVGGElement>('[data-part]')];
+
+    const pick = (id: string, focus = false) => {
+      harvest.dataset.pick = id;
+      tabs.forEach((tab) => {
+        const on = tab.dataset.harvestTab === id;
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+        if (on && focus) tab.focus();
+      });
+      panels.forEach((panel) => (panel.hidden = panel.dataset.harvestPanel !== id));
+      spots.forEach((spot) => spot.classList.toggle('is-active', spot.dataset.harvestSpot === id));
+      parts.forEach((part) => part.classList.toggle('is-picked', part.dataset.part === id));
+    };
+    harvest.classList.add('is-live');
+    pick('leaves');
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => pick(tab.dataset.harvestTab!));
+      tab.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        pick(tabs[(i + step + tabs.length) % tabs.length].dataset.harvestTab!, true);
+      });
+    });
+    spots.forEach((spot) => spot.addEventListener('click', () => pick(spot.dataset.harvestSpot!)));
+
+    // The leaves rustle in when the drawing is first seen
+    if (motionOk && 'IntersectionObserver' in window) {
+      harvest.classList.add('is-waiting');
+      new IntersectionObserver(
+        ([entry], observer) => {
+          if (!entry.isIntersecting) return;
+          observer.disconnect();
+          harvest.classList.remove('is-waiting');
+        },
+        { threshold: 0.3 },
+      ).observe(harvest);
+    }
+  }
+</script>
+
+<style>
+  .moringa {
+    position: relative;
+    overflow: clip;
+    background:
+      radial-gradient(56rem 34rem at 85% 10%, rgba(127, 179, 94, 0.16), transparent 60%),
+      radial-gradient(44rem 28rem at 0% 90%, rgba(230, 199, 156, 0.1), transparent 60%), var(--earth);
+  }
+  .moringa .lede {
+    color: rgba(246, 242, 233, 0.84);
+  }
+
+  /* ── Zoom ────────────────────────────────────────────────────────────── */
+  .zoom {
+    display: grid;
+    gap: 2rem;
+  }
+  .zoom__figure {
+    position: relative;
+  }
+  .zoom__art {
+    display: block;
+    width: min(100%, 34rem);
+    height: auto;
+    margin-inline: auto;
+    overflow: hidden;
+    border-radius: 50%;
+  }
+  .zoom__world {
+    transition: transform 1.3s cubic-bezier(0.65, 0, 0.25, 1);
+  }
+  .zoom__globe {
+    fill: none;
+    stroke: rgba(230, 199, 156, 0.16);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+  .zoom__globe * {
+    vector-effect: non-scaling-stroke;
+  }
+  .zoom__ring {
+    stroke: var(--sand);
+    stroke-width: 1.6;
+    vector-effect: non-scaling-stroke;
+    transition: stroke-opacity 0.6s var(--ease);
+  }
+  .zoom__leaf {
+    fill: var(--sage);
+    opacity: 0.55;
+  }
+  .zoom__label {
+    fill: var(--sand);
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-anchor: middle;
+    text-transform: uppercase;
+    transition: opacity 0.6s var(--ease);
+  }
+  .zoom__home path {
+    fill: none;
+    stroke: var(--ivory);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .zoom__home .zoom__branch {
+    stroke-width: 1;
+  }
+  .zoom__tiny-leaf {
+    fill: var(--sage);
+  }
+  .zoom__home .zoom__pin {
+    fill: var(--terracotta);
+    stroke: none;
+  }
+  .zoom__pin-eye {
+    fill: var(--ivory);
+  }
+  /* Rings already zoomed past fade back, so the one in view reads clearly */
+  .zoom.is-live .zoom__level.is-outer .zoom__label,
+  .zoom.is-live .zoom__level.is-outer .zoom__leaf {
+    opacity: 0;
+  }
+  .zoom.is-live .zoom__level.is-outer .zoom__ring {
+    stroke-opacity: 0.25;
+  }
+  .zoom__crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.35rem 0.25rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(246, 242, 233, 0.4);
+  }
+  .zoom__crumbs li + li::before {
+    content: '›';
+    margin-right: 0.25rem;
+  }
+  .zoom__crumbs li {
+    transition: color 0.4s var(--ease);
+  }
+  .zoom__crumbs li.is-past {
+    color: rgba(246, 242, 233, 0.7);
+  }
+  .zoom__crumbs li.is-active {
+    color: var(--sand);
+  }
+
+  .zoom__steps {
+    display: grid;
+    gap: 1.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .zoom__step {
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius-lg);
+    background: rgba(16, 48, 42, 0.55);
+  }
+  .zoom__where {
+    display: flex;
+    gap: 0.6rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sage);
+  }
+  .zoom__where span {
+    color: var(--sand);
+  }
+  .zoom__figure-text {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    line-height: 1;
+    color: var(--sand);
+  }
+  .zoom__step h3 {
+    margin: 0.6rem 0 0.5rem;
+    font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+  }
+  .zoom__step p:last-child {
+    margin: 0;
+    color: rgba(246, 242, 233, 0.8);
+  }
+
+  /* Scrolled version: the drawing holds still while the steps pass it */
+  :global(.js) .zoom.is-live .zoom__figure {
+    position: sticky;
+    top: 4.5rem;
+    z-index: 1;
+    padding-block: 1.25rem 1rem;
+    background: var(--earth);
+  }
+  :global(.js) .zoom.is-live .zoom__art {
+    width: min(100%, 42svh, 34rem);
+  }
+  :global(.js) .zoom.is-live .zoom__steps {
+    gap: 0;
+  }
+  :global(.js) .zoom.is-live .zoom__step {
+    margin-block: 18svh;
+    opacity: 0.35;
+    transition: opacity 0.5s var(--ease);
+  }
+  :global(.js) .zoom.is-live .zoom__step:first-child {
+    margin-top: 4svh;
+  }
+  :global(.js) .zoom.is-live .zoom__step:last-child {
+    margin-bottom: 30svh;
+  }
+  :global(.js) .zoom.is-live .zoom__step.is-active {
+    opacity: 1;
+  }
+  @media (min-width: 54rem) {
+    .zoom {
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      align-items: start;
+      gap: clamp(2rem, 5vw, 5rem);
+    }
+    .zoom__steps {
+      grid-row: 1;
+      grid-column: 1;
+    }
+    .zoom__figure {
+      grid-column: 2;
+    }
+    :global(.js) .zoom.is-live .zoom__figure {
+      top: calc(50svh - min(21rem, 40svh));
+      padding: 0;
+      background: none;
+    }
+    :global(.js) .zoom.is-live .zoom__art {
+      width: min(100%, 72svh, 38rem);
+    }
+    :global(.js) .zoom.is-live .zoom__step {
+      margin-block: 30svh;
+    }
+    :global(.js) .zoom.is-live .zoom__step:first-child {
+      margin-top: 18svh;
+    }
+    :global(.js) .zoom.is-live .zoom__step:last-child {
+      margin-bottom: 26svh;
+    }
+  }
+
+  /* ── Harvest ─────────────────────────────────────────────────────────── */
+  .harvest {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+    margin-top: clamp(3rem, 7vw, 6rem);
+    padding: clamp(1.25rem, 3.5vw, 2.75rem);
+    border: 1px solid var(--line-light);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(30rem 20rem at 30% 40%, rgba(127, 179, 94, 0.14), transparent 70%),
+      rgba(16, 48, 42, 0.5);
+  }
+  @media (min-width: 54rem) {
+    .harvest {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    }
+  }
+  .harvest__art-wrap {
+    position: relative;
+  }
+  .harvest__art {
+    display: block;
+    width: 100%;
+    height: auto;
+    fill: none;
+    stroke: var(--sand);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .harvest__ground {
+    stroke: rgba(230, 199, 156, 0.4);
+  }
+  .harvest__branch {
+    stroke-width: 1.8;
+  }
+  .harvest__leaf {
+    fill: #8fbf6a;
+    stroke: none;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .harvest__pod {
+    stroke: #7fa858;
+    stroke-width: 4;
+  }
+  .harvest__open-pod {
+    stroke: #7fa858;
+    stroke-width: 3;
+  }
+  .harvest__wing {
+    fill: rgba(246, 242, 233, 0.75);
+    stroke: none;
+  }
+  .harvest__seed {
+    fill: #6b5236;
+    stroke: none;
+  }
+  .harvest__part {
+    transition:
+      opacity 0.5s var(--ease),
+      filter 0.5s var(--ease);
+  }
+  /* The picked part glows; the rest steps back */
+  .harvest.is-live .harvest__part[data-part] {
+    opacity: 0.35;
+  }
+  .harvest.is-live .harvest__part[data-part].is-picked {
+    opacity: 1;
+    filter: drop-shadow(0 0 10px rgba(230, 199, 156, 0.45));
+  }
+  .harvest.is-live [data-part='leaves'].is-picked .harvest__leaf {
+    animation: rustle 2.4s ease-in-out calc(var(--k) * -90ms) infinite alternate;
+  }
+  @keyframes rustle {
+    to {
+      transform: rotate(14deg) scale(1.1);
+    }
+  }
+  .harvest.is-waiting .harvest__leaf {
+    transform: scale(0);
+  }
+  .harvest__leaf {
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--k) * 12ms);
+  }
+
+  .harvest__spot {
+    position: absolute;
+    display: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    margin: -1.375rem 0 0 -1.375rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+  }
+  .harvest.is-live .harvest__spot {
+    display: block;
+  }
+  .harvest__spot span,
+  .harvest__spot::before {
+    position: absolute;
+    inset: 0.75rem;
+    border-radius: 50%;
+  }
+  .harvest__spot span {
+    background: var(--sand);
+    box-shadow: 0 0 0 4px rgba(230, 199, 156, 0.25);
+    transition: transform 0.3s var(--ease);
+  }
+  .harvest__spot::before {
+    content: '';
+    border: 2px solid var(--sand);
+    animation: spot 2s ease-out infinite;
+  }
+  .harvest__spot.is-active span {
+    background: var(--terracotta);
+    transform: scale(1.2);
+  }
+  .harvest__spot:hover span {
+    transform: scale(1.25);
+  }
+  @keyframes spot {
+    to {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+
+  .harvest__tabs {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.3rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--line-light);
+    border-radius: 99px;
+  }
+  .harvest__tabs button {
+    padding: 0.55rem 1.1rem;
+    border: 0;
+    border-radius: 99px;
+    background: none;
+    color: var(--ivory);
+    font: inherit;
+    font-weight: 600;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition:
+      background-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .harvest__tabs button[aria-selected='true'] {
+    background: var(--sand);
+    color: var(--charcoal);
+  }
+  html:not(.js) .harvest__tabs {
+    display: none;
+  }
+  html:not(.js) .harvest__panel[hidden] {
+    display: block;
+  }
+  .harvest__panel {
+    min-height: 9rem;
+    animation: panel-in 0.5s var(--ease);
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .harvest__panel h3 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  }
+  .harvest__panel p {
+    margin: 0;
+    color: rgba(246, 242, 233, 0.82);
+  }
+  .harvest__cta {
+    margin-top: 1.75rem;
+  }
+
+  .moringa__source {
+    margin: clamp(2rem, 4vw, 3rem) 0 0;
+    max-width: 75ch;
+    font-size: 0.8rem;
+    color: rgba(246, 242, 233, 0.55);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .zoom__world,
+    .harvest__leaf,
+    .harvest__part {
+      transition: none;
+    }
+    .harvest__spot::before,
+    .harvest.is-live [data-part='leaves'].is-picked .harvest__leaf {
+      animation: none;
+    }
+  }
+</style>

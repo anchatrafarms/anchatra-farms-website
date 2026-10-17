@@ -11,7 +11,8 @@ const category = getCategory(product.category);
 
 <article class="product-tile" data-category={product.category}>
   <a class="product-tile__image" href={productHref(product)} tabindex="-1" aria-hidden="true">
-    <Photo file={image.file} alt="" cutout={image.cutout} />
+    {/* The link is hidden from assistive tech (the heading link repeats it), so the alt text serves image search */}
+    <Photo file={image.file} alt={image.alt} cutout={image.cutout} />
     <span class="product-tile__badge">{category?.shortName}</span>
   </a>
   <div class="product-tile__body">

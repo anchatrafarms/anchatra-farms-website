@@ -5,15 +5,18 @@ import Arrow from '../components/Arrow.astro';
 import ClosingCta from '../components/ClosingCta.astro';
 import NameReveal from '../components/NameReveal.astro';
 import Globe from '../components/Globe.astro';
+import HeroArt from '../components/HeroArt.astro';
+import MarketDay from '../components/MarketDay.astro';
 import { site } from '../data/index.js';
 ---
 
 <Base
   title="Our Story"
-  description="ANCHATRA FARMS takes its name from Oddanchatram, the Tamil Nadu market town we call home. Read how local market relationships shaped an agricultural export business."
+  description="ANCHATRA FARMS is named after Oddanchatram, the Tamil Nadu market town we call home. How local market relationships shaped our export business."
   image="market-stall.jpg"
 >
   <section class="page-hero">
+    <HeroArt kind="story" />
     <div class="container">
       <p class="eyebrow">Our story</p>
       <h1>We carry our hometown <em>in our name.</em></h1>
@@ -55,6 +58,9 @@ import { site } from '../data/index.js';
       </div>
     </div>
   </section>
+
+  <!-- Our hometown market: a day of auctions, and where the produce goes -->
+  <MarketDay />
 
   <!-- What we offer -->
   <section class="section section--deep" aria-labelledby="offer-heading">

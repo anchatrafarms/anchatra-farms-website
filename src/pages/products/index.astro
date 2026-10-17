@@ -2,15 +2,17 @@
 import Base from '../../layouts/Base.astro';
 import ProductTile from '../../components/ProductTile.astro';
 import ClosingCta from '../../components/ClosingCta.astro';
+import HeroArt from '../../components/HeroArt.astro';
 import Arrow from '../../components/Arrow.astro';
 import { categories, products } from '../../data/index.js';
 ---
 
 <Base
-  title="Our Products"
-  description="Browse the ANCHATRA FARMS catalogue: black garlic and moringa powder, green cardamom and black pepper, plus fresh produce beginning with onions and tomatoes. Request a quotation for any product."
+  title="Black Garlic, Moringa, Spices & Fresh Produce"
+  description="Black garlic, moringa powder, green cardamom, black pepper, onions and tomatoes from ANCHATRA FARMS in Tamil Nadu, India. Request a quotation."
 >
   <section class="page-hero">
+    <HeroArt kind="products" />
     <div class="container">
       <p class="eyebrow">Our products</p>
       <h1>A small catalogue, chosen with care.</h1>

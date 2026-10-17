@@ -9,6 +9,8 @@
 // hidden on the website and replaced by a "contact us to discuss" sentence.
 // Only enter information you can stand behind with a buyer.
 //
+//   seoTitle        the search-result title (keep under ~45 characters; " | ANCHATRA FARMS" is added)
+//   seoDescription  the search-result summary (keep under ~155 characters)
 //   featured        true = shown in the large "featured" section on the homepage
 //   featuredOrder   lower numbers appear first
 //   images          files in src/assets/images/ — the first is the main image.
@@ -28,6 +30,9 @@
 export const products = [
   {
     slug: 'black-garlic',
+    seoTitle: 'Black Garlic Supplier in Tamil Nadu, India',
+    seoDescription:
+      'Black garlic for importers, food brands and food service. Tell ANCHATRA FARMS the form, grade and packing you need and request a quotation.',
     name: 'Black Garlic',
     category: 'processed',
     featured: true,
@@ -67,6 +72,9 @@ export const products = [
   },
   {
     slug: 'moringa-powder',
+    seoTitle: 'Moringa Leaf Powder Supplier, Tamil Nadu',
+    seoDescription:
+      'Moringa leaf powder for blends, beverages and food products. Share your specification and pack size with ANCHATRA FARMS for a quotation.',
     name: 'Moringa Powder',
     category: 'processed',
     featured: true,
@@ -108,6 +116,9 @@ export const products = [
   },
   {
     slug: 'green-cardamom',
+    seoTitle: 'Green Cardamom (Elachi) for Trade Buyers',
+    seoDescription:
+      'Whole green cardamom pods (elachi) for trade buyers. Tell ANCHATRA FARMS the grade, pack size and documents you need and request a quotation.',
     name: 'Green Cardamom',
     category: 'spices',
     featured: false,
@@ -140,6 +151,9 @@ export const products = [
   },
   {
     slug: 'black-pepper',
+    seoTitle: 'Whole Black Pepper for Trade Buyers, India',
+    seoDescription:
+      'Whole black peppercorns for seasoning, blending and processing. Share your grade, quantity and destination with ANCHATRA FARMS for a quotation.',
     name: 'Black Pepper',
     category: 'spices',
     featured: false,
@@ -172,6 +186,9 @@ export const products = [
   },
   {
     slug: 'onions',
+    seoTitle: 'Fresh Onions from Oddanchatram, Tamil Nadu',
+    seoDescription:
+      'Fresh onions sourced through vegetable-market relationships in Oddanchatram, Tamil Nadu. Share your requirement with ANCHATRA FARMS for a quotation.',
     name: 'Onions',
     category: 'fresh-produce',
     featured: false,
@@ -208,6 +225,9 @@ export const products = [
   },
   {
     slug: 'tomatoes',
+    seoTitle: 'Fresh Tomatoes from Oddanchatram, Tamil Nadu',
+    seoDescription:
+      'Fresh tomatoes from Oddanchatram, Tamil Nadu, discussed by season, variety and destination. Send ANCHATRA FARMS your requirement for a quotation.',
     name: 'Tomatoes',
     category: 'fresh-produce',
     featured: false,

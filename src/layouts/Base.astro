@@ -8,7 +8,14 @@ import Footer from '../components/Footer.astro';
 import Arrow from '../components/Arrow.astro';
 import { site, getImage, whatsappHref } from '../data/index.js';
 
-const { title, description = site.description, image = 'black-garlic-bulbs.jpg', noindex = false, overlay = false } = Astro.props;
+const {
+  title,
+  description = site.description,
+  image = 'black-garlic-bulbs.jpg',
+  noindex = false,
+  overlay = false,
+  breadcrumbs = [],
+} = Astro.props;
 
 const fullTitle = title ? `${title} | ${site.name}` : `${site.name} — ${site.tagline}`;
 const whatsapp = whatsappHref();
@@ -32,7 +39,31 @@ const organisation = {
     addressCountry: 'IN',
   },
   ...(site.contact.email && { email: site.contact.email }),
+  ...(site.contact.phone && { telephone: site.contact.phone }),
+  ...((site.contact.email || site.contact.phone) && {
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'sales',
+      ...(site.contact.email && { email: site.contact.email }),
+      ...(site.contact.phone && { telephone: site.contact.phone }),
+    },
+  }),
 };
+
+// Breadcrumbs need absolute addresses, so they are only published once site.url is set.
+const breadcrumbList =
+  site.url && breadcrumbs.length > 0
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbs.map((crumb, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          name: crumb.name,
+          item: new URL(crumb.path, site.url).href,
+        })),
+      }
+    : null;
 ---
 
 <!doctype html>
@@ -60,6 +91,7 @@ const organisation = {
       document.documentElement.classList.add('js');
     </script>
     <script type="application/ld+json" set:html={JSON.stringify(organisation)} />
+    {breadcrumbList && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbList)} />}
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>

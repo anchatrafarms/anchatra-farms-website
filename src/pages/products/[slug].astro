@@ -4,7 +4,7 @@ import Base from '../../layouts/Base.astro';
 import Photo from '../../components/Photo.astro';
 import Arrow from '../../components/Arrow.astro';
 import ProductTile from '../../components/ProductTile.astro';
-import { products, getCategory, enquiryHref, whatsappHref } from '../../data/index.js';
+import { products, getCategory, productHref, enquiryHref, whatsappHref } from '../../data/index.js';
 
 export function getStaticPaths() {
   return products.map((product) => ({ params: { slug: product.slug }, props: { product } }));
@@ -33,9 +33,14 @@ const related = products.filter((other) => other.slug !== product.slug).slice(0,
 ---
 
 <Base
-  title={`${product.name} — ${category?.name}`}
-  description={`${product.name} from ANCHATRA FARMS, Oddanchatram, Tamil Nadu. ${product.summary} Request a quotation.`}
+  title={product.seoTitle || `${product.name} — ${category?.name}`}
+  description={product.seoDescription || `${product.name} from ANCHATRA FARMS, Oddanchatram, Tamil Nadu. Request a quotation.`}
   image={mainImage.file}
+  breadcrumbs={[
+    { name: 'Home', path: '/' },
+    { name: 'Our Products', path: '/products/' },
+    { name: product.name, path: productHref(product) },
+  ]}
 >
   <section class="product">
     <div class="container">

@@ -188,8 +188,9 @@ const steps = [
 
 <style>
   /* ── At a glance ──────────────────────────────────────────────────────── */
+  /* Sits between the hero's wave and the next band's curve, so it carries no rule of its own */
   .facts {
-    border-bottom: 1px solid var(--line);
+    padding-block: clamp(0.75rem, 1.5vw, 1.25rem) clamp(2rem, 4vw, 3.5rem);
   }
   .facts__list {
     display: grid;
